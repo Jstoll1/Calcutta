@@ -1146,18 +1146,30 @@ function updateWinDelta(card, livePct) {
 
 /* ══════════════════════════════════════════════
    LIVE SCORING + PROBABILITY — ESPN public API
-   winProbability is in competitions[0].situation
-   or competitions[0].predictor (field varies).
-   We try both locations and fall back gracefully.
 ══════════════════════════════════════════════ */
+
+/* Unconditionally rewrite win-pct from data attribute every poll */
+function restoreStaticPct(card) {
+  var base = card.dataset.basePct;
+  if (!base) return;
+  var pctEl = card.querySelector('.win-pct');
+  if (pctEl) pctEl.innerHTML = base + '<span class="win-sym">%</span>';
+}
+
 function processLiveEvents(events) {
+  /* First pass: restore static % on every card unconditionally */
+  document.querySelectorAll('[data-tid]').forEach(restoreStaticPct);
+
   events.forEach(function(ev) {
     var comp = ev.competitions && ev.competitions[0];
     if (!comp) return;
     var comps = comp.competitors;
+    var statusType = ev.status.type.name;
+    var isScheduled = statusType === 'STATUS_SCHEDULED';
+    var isFinal     = statusType === 'STATUS_FINAL' || statusType === 'STATUS_FINAL_OT';
+    var isLive      = !isScheduled && !isFinal;
 
     Object.keys(LIVE_MATCH).forEach(function(tid) {
-      /* find which competitor index matches this card */
       var matchIdx = -1;
       comps.forEach(function(c, i) {
         if (LIVE_MATCH[tid]((c.team.displayName || '').toLowerCase())) matchIdx = i;
@@ -1167,71 +1179,66 @@ function processLiveEvents(events) {
       var card = document.querySelector('[data-tid="' + tid + '"]');
       if (!card) return;
 
-      var statusType = ev.status.type.name;
-      if (statusType === 'STATUS_SCHEDULED') return;
+      /* Always ensure static % is visible */
+      restoreStaticPct(card);
 
-      /* ── SCORE BAR ── */
-      var bar = card.querySelector('.live-bar');
-      if (bar) {
-        var c1 = comps[0], c2 = comps[1];
-        var sc1 = parseInt(c1.score) || 0;
-        var sc2 = parseInt(c2.score) || 0;
-        var n1  = (c1.team.abbreviation || c1.team.shortDisplayName || '??').toUpperCase();
-        var n2  = (c2.team.abbreviation || c2.team.shortDisplayName || '??').toUpperCase();
+      /* ── SCORE BAR (live + final only) ── */
+      if (!isScheduled) {
+        var bar = card.querySelector('.live-bar');
+        if (bar) {
+          var c1 = comps[0], c2 = comps[1];
+          var sc1 = parseInt(c1.score) || 0;
+          var sc2 = parseInt(c2.score) || 0;
+          var n1  = (c1.team.abbreviation || c1.team.shortDisplayName || '??').toUpperCase();
+          var n2  = (c2.team.abbreviation || c2.team.shortDisplayName || '??').toUpperCase();
 
-        var stStr, stCls;
-        if (statusType === 'STATUS_FINAL' || statusType === 'STATUS_FINAL_OT') {
-          stStr = 'FINAL'; stCls = 'lb-final';
-        } else if (statusType === 'STATUS_HALFTIME') {
-          stStr = 'HALF'; stCls = 'lb-live';
-        } else {
-          var p   = ev.status.period || 1;
-          var clk = ev.status.displayClock || '';
-          stStr = (p <= 2 ? 'H' + p : 'OT' + (p - 2)) + (clk ? ' ' + clk : '');
-          stCls = 'lb-live';
-        }
+          var stStr, stCls;
+          if (isFinal) {
+            stStr = 'FINAL'; stCls = 'lb-final';
+          } else if (statusType === 'STATUS_HALFTIME') {
+            stStr = 'HALF'; stCls = 'lb-live';
+          } else {
+            var p   = ev.status.period || 1;
+            var clk = ev.status.displayClock || '';
+            stStr = (p <= 2 ? 'H' + p : 'OT' + (p - 2)) + (clk ? ' ' + clk : '');
+            stCls = 'lb-live';
+          }
 
-        bar.style.display = 'flex';
-        bar.innerHTML =
-          '<span class="lb-name">'   + n1   + '</span>' +
-          '<span class="lb-score">'  + sc1  + '</span>' +
-          '<span class="lb-sep">–</span>' +
-          '<span class="lb-score">'  + sc2  + '</span>' +
-          '<span class="lb-name">'   + n2   + '</span>' +
-          '<span class="lb-status '  + stCls + '">' + stStr + '</span>';
-      }
-
-      /* ── WIN PROBABILITY DELTA ──
-         ESPN surfaces this in two places depending on game state:
-         1. competitions[0].situation.homeWinPercentage (home team)
-         2. competitions[0].predictor.homeTeam.gameProjection
-         We read whichever is present and map to the matched competitor.
-      ── */
-      var livePct = null;
-
-      /* path 1: real-time situation block (in-game) */
-      var sit = comp.situation;
-      if (sit && typeof sit.homeWinPercentage === 'number') {
-        /* figure out if our team is home or away */
-        var isHome = comps[matchIdx].homeAway === 'home';
-        livePct = Math.round((isHome ? sit.homeWinPercentage : (1 - sit.homeWinPercentage)) * 100);
-      }
-
-      /* path 2: predictor block (pre-tip / halftime) */
-      if (livePct === null) {
-        var pred = comp.predictor;
-        if (pred) {
-          var isHome2 = comps[matchIdx].homeAway === 'home';
-          var proj = isHome2
-            ? (pred.homeTeam && pred.homeTeam.gameProjection)
-            : (pred.awayTeam && pred.awayTeam.gameProjection);
-          if (typeof proj === 'number') livePct = Math.round(proj);
+          bar.style.display = 'flex';
+          bar.innerHTML =
+            '<span class="lb-name">'  + n1  + '</span>' +
+            '<span class="lb-score">' + sc1 + '</span>' +
+            '<span class="lb-sep">–</span>' +
+            '<span class="lb-score">' + sc2 + '</span>' +
+            '<span class="lb-name">'  + n2  + '</span>' +
+            '<span class="lb-status ' + stCls + '">' + stStr + '</span>';
         }
       }
 
-      /* only update delta if we have a live number and game is active */
-      if (livePct !== null && statusType !== 'STATUS_FINAL' && statusType !== 'STATUS_FINAL_OT') {
-        updateWinDelta(card, livePct);
+      /* ── WIN PROBABILITY DELTA (in-game only) ── */
+      if (isLive) {
+        var livePct = null;
+
+        /* path 1: real-time situation block */
+        var sit = comp.situation;
+        if (sit && typeof sit.homeWinPercentage === 'number') {
+          var isHome = comps[matchIdx].homeAway === 'home';
+          livePct = Math.round((isHome ? sit.homeWinPercentage : (1 - sit.homeWinPercentage)) * 100);
+        }
+
+        /* path 2: predictor block */
+        if (livePct === null) {
+          var pred = comp.predictor;
+          if (pred) {
+            var isHome2 = comps[matchIdx].homeAway === 'home';
+            var proj = isHome2
+              ? (pred.homeTeam && pred.homeTeam.gameProjection)
+              : (pred.awayTeam && pred.awayTeam.gameProjection);
+            if (typeof proj === 'number') livePct = Math.round(proj);
+          }
+        }
+
+        if (livePct !== null) updateWinDelta(card, livePct);
       }
     });
   });
