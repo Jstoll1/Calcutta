@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SeedMoney Live</title>
+
+<style>
+body {
+  margin:0;
+  font-family:-apple-system,system-ui;
+  background:#0b1220;
+  color:white;
+  padding:16px;
+}
+
+h1 {margin:0;}
+.sub {color:#9ca3af;margin-bottom:16px;}
+
+.summary {
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:10px;
+  margin-bottom:16px;
+}
+
+.stat {
+  background:#111827;
+  padding:12px;
+  border-radius:12px;
+}
+
+.stat small {color:#9ca3af;}
+.stat div {font-size:20px;font-weight:bold;}
+
+.games {display:flex;flex-direction:column;gap:12px;}
+
+.game {
+  background:#111827;
+  border-radius:14px;
+  padding:14px;
+}
+
+.game.live {border:2px solid #ef4444;}
+
+.badge {
+  padding:4px 8px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:bold;
+}
+
+.live {background:#ef4444;}
+.final {background:#374151;}
+.upcoming {background:#2563eb;}
+
+.row {
+  display:flex;
+  justify-content:space-between;
+  margin-top:8px;
+}
+
+.team {font-weight:bold;}
+.score {font-size:22px;}
+
+.owned {color:#fbbf24;font-size:12px;}
+</style>
+</head>
+
+<body>
+
+<h1>Team Curt — Round 1</h1>
+<div class="sub" id="updated">Last updated: --</div>
+
+<div class="summary">
+  <div class="stat"><small>Teams Owned</small><div>12</div></div>
+  <div class="stat"><small>Games Today</small><div id="gamesToday">--</div></div>
+  <div class="stat"><small>Live</small><div id="liveCount">--</div></div>
+  <div class="stat"><small>Final</small><div id="finalCount">--</div></div>
+</div>
+
+<div class="games" id="games"></div>
+
+<script>
+
+const owned = ["MSU","NDSU","DUKE","VCU"];
+
+async function loadGames() {
+
+  try {
+    // 👉 replace with your worker later
+    const res = await fetch("https://YOUR-WORKER.workers.dev/live-games");
+    const data = await res.json();
+    render(data);
+
+  } catch {
+    // fallback demo
+    render([
+      {
+        Status:"InProgress",
+        Period:"2H",
+        AwayTeam:"NDSU",
+        AwayTeamName:"North Dakota State",
+        AwayTeamScore:58,
+        HomeTeam:"MSU",
+        HomeTeamName:"Michigan State",
+        HomeTeamScore:66
+      },
+      {
+        Status:"Final",
+        AwayTeam:"GCU",
+        AwayTeamName:"Grand Canyon",
+        AwayTeamScore:71,
+        HomeTeam:"DUKE",
+        HomeTeamName:"Duke",
+        HomeTeamScore:77
+      },
+      {
+        Status:"Scheduled",
+        DateTime:"2026-03-19T19:25:00",
+        AwayTeam:"VCU",
+        AwayTeamName:"VCU",
+        HomeTeam:"ISU",
+        HomeTeamName:"Iowa State"
+      }
+    ]);
+  }
+}
+
+function badge(s){
+  if(s==="InProgress") return '<span class="badge live">LIVE</span>';
+  if(s==="Final") return '<span class="badge final">FINAL</span>';
+  return '<span class="badge upcoming">UPCOMING</span>';
+}
+
+function render(games){
+
+  document.getElementById("games").innerHTML = games.map(g=>`
+    <div class="game ${g.Status==="InProgress"?"live":""}">
+      ${badge(g.Status)}
+
+      <div class="row">
+        <div>
+          <div class="team">${g.AwayTeamName}</div>
+          ${owned.includes(g.AwayTeam)?'<div class="owned">Owned</div>':''}
+        </div>
+        <div class="score">${g.AwayTeamScore ?? "-"}</div>
+      </div>
+
+      <div class="row">
+        <div>
+          <div class="team">${g.HomeTeamName}</div>
+          ${owned.includes(g.HomeTeam)?'<div class="owned">Owned</div>':''}
+        </div>
+        <div class="score">${g.HomeTeamScore ?? "-"}</div>
+      </div>
+
+      <div style="margin-top:8px;color:#9ca3af;font-size:12px;">
+        ${g.Status==="InProgress" ? g.Period :
+          g.Status==="Scheduled" ? new Date(g.DateTime).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"}) :
+          ""}
+      </div>
+    </div>
+  `).join("");
+
+  document.getElementById("gamesToday").textContent = games.length;
+  document.getElementById("liveCount").textContent = games.filter(g=>g.Status==="InProgress").length;
+  document.getElementById("finalCount").textContent = games.filter(g=>g.Status==="Final").length;
+
+  document.getElementById("updated").textContent =
+    "Last updated: " + new Date().toLocaleTimeString();
+}
+
+loadGames();
+setInterval(loadGames,30000);
+
+</script>
+
+</body>
+</html>
