@@ -1101,9 +1101,23 @@ margin-top: 6px;
 </div>
 
 <script>
-/* ══════════════════════════════════════════════
-   TEAM MATCHING — ESPN name → card data-tid
-══════════════════════════════════════════════ */
+/* WIN PROBABILITY — logistic model
+   P = 1 / (1 + exp(-k * margin / sqrt(possLeft)))
+   k=0.3, pace ~1.75 poss/min */
+function calcWinPct(ourScore, oppScore, period, clockStr) {
+  var parts = (clockStr || '20:00').split(':');
+  var minsLeft = parseFloat(parts[0] || 0) + parseFloat(parts[1] || 0) / 60;
+  var totalMinsLeft;
+  if (period === 1)      { totalMinsLeft = minsLeft + 20; }
+  else if (period === 2) { totalMinsLeft = minsLeft; }
+  else                   { totalMinsLeft = minsLeft; }
+  var margin   = ourScore - oppScore;
+  var possLeft = Math.max(totalMinsLeft * 1.75, 0.5);
+  var z        = 0.3 * margin / Math.sqrt(possLeft);
+  var pct      = Math.round(100 / (1 + Math.exp(-z)));
+  return Math.max(1, Math.min(99, pct));
+}
+
 var LIVE_MATCH = {
   ndsu:     function(n) { return n.includes('north dakota state') || n === 'ndsu'; },
   msu:      function(n) { return n === 'michigan state' || n.includes('michigan state'); },
@@ -1119,51 +1133,39 @@ var LIVE_MATCH = {
   missouri: function(n) { return n === 'missouri'; }
 };
 
-/* ══════════════════════════════════════════════
-   WIN DELTA — update the .win-delta chip
-   livePct: 0-100 from ESPN winProbability
-   basePct: original pre-game number from data attr
-══════════════════════════════════════════════ */
 function updateWinDelta(card, livePct) {
-  var basePct  = parseInt(card.dataset.basePct, 10);
-  var delta    = Math.round(livePct - basePct);
-  var chip     = card.querySelector('.win-delta');
+  var basePct = parseInt(card.dataset.basePct, 10);
+  var delta   = Math.round(livePct - basePct);
+  var chip    = card.querySelector('.win-delta');
   if (!chip) return;
-
   chip.style.display = 'block';
-
   if (delta > 0) {
     chip.className = 'win-delta up';
-    chip.textContent = '▲' + delta + '%';
+    chip.textContent = String.fromCharCode(9650) + delta + '%';
   } else if (delta < 0) {
     chip.className = 'win-delta down';
-    chip.textContent = '▼' + Math.abs(delta) + '%';
+    chip.textContent = String.fromCharCode(9660) + Math.abs(delta) + '%';
   } else {
     chip.className = 'win-delta flat';
-    chip.textContent = '— 0%';
+    chip.textContent = '- 0%';
   }
 }
 
-/* ══════════════════════════════════════════════
-   LIVE SCORING + PROBABILITY — ESPN public API
-══════════════════════════════════════════════ */
-
-/* Unconditionally rewrite win-pct from data attribute every poll */
 function restoreStaticPct(card) {
-  var base = card.dataset.basePct;
+  var base  = card.dataset.basePct;
   if (!base) return;
   var pctEl = card.querySelector('.win-pct');
   if (pctEl) pctEl.innerHTML = base + '<span class="win-sym">%</span>';
 }
 
 function processLiveEvents(events) {
-  /* First pass: restore static % on every card unconditionally */
+  /* Restore static % on every card first, unconditionally */
   document.querySelectorAll('[data-tid]').forEach(restoreStaticPct);
 
   events.forEach(function(ev) {
     var comp = ev.competitions && ev.competitions[0];
     if (!comp) return;
-    var comps = comp.competitors;
+    var comps      = comp.competitors;
     var statusType = ev.status.type.name;
     var isScheduled = statusType === 'STATUS_SCHEDULED';
     var isFinal     = statusType === 'STATUS_FINAL' || statusType === 'STATUS_FINAL_OT';
@@ -1179,19 +1181,17 @@ function processLiveEvents(events) {
       var card = document.querySelector('[data-tid="' + tid + '"]');
       if (!card) return;
 
-      /* Always ensure static % is visible */
       restoreStaticPct(card);
 
-      /* ── SCORE BAR (live + final only) ── */
+      /* Score bar — live and final */
       if (!isScheduled) {
         var bar = card.querySelector('.live-bar');
         if (bar) {
-          var c1 = comps[0], c2 = comps[1];
+          var c1  = comps[0], c2 = comps[1];
           var sc1 = parseInt(c1.score) || 0;
           var sc2 = parseInt(c2.score) || 0;
           var n1  = (c1.team.abbreviation || c1.team.shortDisplayName || '??').toUpperCase();
           var n2  = (c2.team.abbreviation || c2.team.shortDisplayName || '??').toUpperCase();
-
           var stStr, stCls;
           if (isFinal) {
             stStr = 'FINAL'; stCls = 'lb-final';
@@ -1203,42 +1203,26 @@ function processLiveEvents(events) {
             stStr = (p <= 2 ? 'H' + p : 'OT' + (p - 2)) + (clk ? ' ' + clk : '');
             stCls = 'lb-live';
           }
-
           bar.style.display = 'flex';
           bar.innerHTML =
             '<span class="lb-name">'  + n1  + '</span>' +
             '<span class="lb-score">' + sc1 + '</span>' +
-            '<span class="lb-sep">–</span>' +
+            '<span class="lb-sep">-</span>' +
             '<span class="lb-score">' + sc2 + '</span>' +
             '<span class="lb-name">'  + n2  + '</span>' +
             '<span class="lb-status ' + stCls + '">' + stStr + '</span>';
         }
       }
 
-      /* ── WIN PROBABILITY DELTA (in-game only) ── */
+      /* Win probability delta — math model, live games only */
       if (isLive) {
-        var livePct = null;
-
-        /* path 1: real-time situation block */
-        var sit = comp.situation;
-        if (sit && typeof sit.homeWinPercentage === 'number') {
-          var isHome = comps[matchIdx].homeAway === 'home';
-          livePct = Math.round((isHome ? sit.homeWinPercentage : (1 - sit.homeWinPercentage)) * 100);
-        }
-
-        /* path 2: predictor block */
-        if (livePct === null) {
-          var pred = comp.predictor;
-          if (pred) {
-            var isHome2 = comps[matchIdx].homeAway === 'home';
-            var proj = isHome2
-              ? (pred.homeTeam && pred.homeTeam.gameProjection)
-              : (pred.awayTeam && pred.awayTeam.gameProjection);
-            if (typeof proj === 'number') livePct = Math.round(proj);
-          }
-        }
-
-        if (livePct !== null) updateWinDelta(card, livePct);
+        var oppIdx  = matchIdx === 0 ? 1 : 0;
+        var ourScore = parseInt(comps[matchIdx].score) || 0;
+        var oppScore = parseInt(comps[oppIdx].score)   || 0;
+        var period   = ev.status.period || 1;
+        var clockStr = ev.status.displayClock || '20:00';
+        var livePct  = calcWinPct(ourScore, oppScore, period, clockStr);
+        updateWinDelta(card, livePct);
       }
     });
   });
@@ -1252,16 +1236,14 @@ function fetchScores() {
     )
     .then(function(r) { return r.json(); })
     .then(function(data) { if (data.events) processLiveEvents(data.events); })
-    .catch(function() { /* silently fail — offline or CORS */ });
+    .catch(function() {});
   });
 }
 
 fetchScores();
 setInterval(fetchScores, 45000);
 
-/* ══════════════════════════════════════════════
-   SCENARIO CALCULATOR
-══════════════════════════════════════════════ */
+/* SCENARIO CALCULATOR */
 var scRound = 'F4';
 
 var SC_T = {
@@ -1280,7 +1262,7 @@ var SC_T = {
 };
 
 var SC_R  = ['R1','S16','E8','F4','Finals','Champ'];
-var SC_RL = {R1:'Round 1 Win', S16:'Sweet 16', E8:'Elite 8', F4:'Final Four', Finals:'Champ. Game', Champ:'Champion 🏆'};
+var SC_RL = {R1:'Round 1 Win', S16:'Sweet 16', E8:'Elite 8', F4:'Final Four', Finals:'Champ. Game', Champ:'Champion'};
 
 function scPick(el) {
   document.querySelectorAll('.sc-pill').forEach(function(p){ p.classList.remove('active'); });
@@ -1313,12 +1295,10 @@ function scCalc() {
     var locked = (amt === 0);
     var approx = !!approxSet[r];
     total += amt;
-
     var cls  = isTgt ? 'target' : locked ? 'locked' : 'earned';
-    var icon = isTgt ? '◉' : locked ? '—' : '✓';
+    var icon = isTgt ? 'O' : locked ? '-' : 'v';
     var disp = locked ? '$0' : ((approx ? '~' : '') + '$' + amt.toLocaleString());
     var pfx  = (amt > 0) ? '+' : '';
-
     rows += '<div class="sc-ms-row ' + cls + '">'
           + '<div class="sc-ms-icon">' + icon + '</div>'
           + '<div class="sc-ms-label">' + SC_RL[r] + '</div>'
@@ -1329,45 +1309,33 @@ function scCalc() {
   var net    = total - t.paid;
   var roi    = Math.round((net / t.paid) * 100);
   var profit = (net >= 0);
-
   var hasApprox = false;
   for (var j = 0; j <= ti; j++) {
     if (approxSet[SC_R[j]] && P[SC_R[j]] > 0) { hasApprox = true; break; }
   }
-  var ap = hasApprox ? '~' : '';
-
-  var netDisp = (profit ? '+' : '\u2212') + ap + '$' + Math.abs(net).toLocaleString();
-  var roiDisp = (profit ? '+' : '') + roi.toLocaleString() + '%';
-
-  var notes = '';
+  var ap      = hasApprox ? '~' : '';
+  var netDisp = (profit ? '+' : '-') + ap + '$' + Math.abs(net).toLocaleString();
+  var notes   = '';
 
   if (t.top3 && ti < SC_R.indexOf('E8')) {
-    notes += '<div class="sc-note">'
-           + '<div class="sc-note-title">ℹ️ Payout Structure</div>'
-           + '<div class="sc-note-body">As a #' + t.s + ' seed, ' + t.n + ' is not eligible for R1 or S16 payouts — first collection happens at Elite 8.</div>'
-           + '</div>';
+    notes += '<div class="sc-note"><div class="sc-note-title">Payout Structure</div>'
+           + '<div class="sc-note-body">As a #' + t.s + ' seed, ' + t.n + ' is not eligible for R1 or S16 payouts — first collection happens at Elite 8.</div></div>';
   }
-
   if (t.upset) {
-    notes += '<div class="sc-note">'
-           + '<div class="sc-note-title">⚡ Side Pot Upside</div>'
-           + '<div class="sc-note-body">' + t.n + ' winning R1 makes them a strong candidate for the Biggest Upset pot (~$1,086 — not included above)</div>'
-           + '</div>';
+    notes += '<div class="sc-note"><div class="sc-note-title">Side Pot Upside</div>'
+           + '<div class="sc-note-body">' + t.n + ' winning R1 makes them a strong candidate for the Biggest Upset pot (~$1,086 not included above)</div></div>';
   }
-
   if (t.par) {
     var p2 = SC_T[t.par];
-    notes += '<div class="sc-note" style="margin-top:6px">'
-           + '<div class="sc-note-title">🔄 Paired Game</div>'
-           + '<div class="sc-note-body">You own both teams in this matchup. If ' + t.n + ' advances, ' + p2.n + ' is out in R1.</div>'
-           + '</div>';
+    notes += '<div class="sc-note" style="margin-top:6px"><div class="sc-note-title">Paired Game</div>'
+           + '<div class="sc-note-body">You own both teams in this matchup. If ' + t.n + ' advances, ' + p2.n + ' is out in R1.</div></div>';
   }
 
   res.innerHTML =
       '<div class="sc-ms-rows">' + rows + '</div>'
     + '<div class="sc-totals">'
     + '<div class="sc-total-row"><div class="sc-total-lbl">Total Collected</div><div class="sc-total-val">' + ap + '$' + total.toLocaleString() + '</div></div>'
-    + '<div class="sc-total-row"><div class="sc-total-lbl">Paid in Calcutta</div><div class="sc-total-val neg">\u2212$' + t.paid.toLocaleString() + '</div></div>'
+    + '<div class="sc-total-row"><div class="sc-total-lbl">Paid in Calcutta</div><div class="sc-total-val neg">-$' + t.paid.toLocaleString() + '</div></div>'
     + '<div class="sc-divider"></div>'
     + '<div class="sc-total-row"><div class="sc-total-lbl">Net Return</div><div class="sc-total-val ' + (profit ? 'pos' : 'neg') + '">' + netDisp + '</div></div>'
     + '</div>'
