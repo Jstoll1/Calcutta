@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -44,6 +43,13 @@ html,body{background:#090910;color:#e4e4f0;font-family:-apple-system,BlinkMacSys
 .scard-name{font-size:13px;font-weight:600;margin-top:4px;color:#e4e4f0}
 .scard-stats{font-size:10px;color:#4a4a66;margin-top:6px;line-height:1.75}
 .scard-stats b{color:#7a7a96}
+/* Logo strip at bottom of standings cards */
+.scard-logos{display:flex;flex-wrap:wrap;gap:5px;margin-top:11px;padding-top:10px;border-top:1px solid #18182a}
+.scard-logo-wrap{display:flex;flex-direction:column;align-items:center;gap:2px;position:relative}
+.scard-logo-wrap img{width:22px;height:22px;border-radius:5px;object-fit:contain;background:#1a1a28}
+.scard-logo-fb{width:22px;height:22px;border-radius:5px;background:#1a1a28;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:800;color:#3a3a55}
+.scard-logo-earn{font-size:7px;font-weight:800;color:#4ade80;white-space:nowrap;line-height:1;letter-spacing:.2px}
+.scard-logo-live{position:absolute;top:-2px;right:-2px;width:6px;height:6px;border-radius:50%;background:#ef4444;animation:blink 1.2s ease-in-out infinite;flex-shrink:0}
 
 /* ── GAME ROWS ───────────────────────────────────────── */
 .gsec{margin-bottom:24px}
@@ -99,13 +105,14 @@ html,body{background:#090910;color:#e4e4f0;font-family:-apple-system,BlinkMacSys
 .tname{font-size:11px;line-height:1.25;color:#b0b0cc;text-align:center;padding:0 36px}
 .tseed-num{font-size:9px;font-weight:700;color:#3a3a55;margin-right:4px}
 .tname.alive{color:#c8c8e0}
-.tname.won{color:#22c55e;font-weight:500}
+.tname.adv{color:#c8c8e0;font-weight:400}       /* advanced but no earnings yet — stays white */
+.tname.earning{color:#22c55e;font-weight:600}   /* won + actively earning money — green */
 .tname.live{color:#f59e0b}
-.tname.elim{text-decoration:line-through;color:#2c2c3e;font-weight:400}
+.tname.elim{text-decoration:line-through;color:#22223a;font-weight:400}
 .tbadge{position:absolute;right:10px;font-size:8px;padding:1px 5px;border-radius:3px;font-weight:700;letter-spacing:.3px}
-.tbadge.won{background:#0d2018;color:#22c55e}
+.tbadge.adv{background:#131320;color:#38385a}   /* dim neutral "ADV" for non-earning winners */
 .tbadge.live{background:#271a06;color:#f59e0b}
-.tbadge.elim{background:#1e0e1a;color:#7a3070}
+.tbadge.elim{background:#16121e;color:#3a1a38}  /* very dark, almost invisible × */
 .tbadge.pending{background:#181826;color:#34344a}
 .tbadge.money{background:#0a2010;color:#4ade80;font-size:9px;padding:2px 6px;letter-spacing:.2px}
 .rcol-rank{width:16px;height:16px;border-radius:4px;background:var(--oc);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:#000;flex-shrink:0;opacity:.9}
@@ -162,7 +169,7 @@ html,body{background:#090910;color:#e4e4f0;font-family:-apple-system,BlinkMacSys
   <div class="hdr-eye">The Calcutta</div>
   <div class="hdr-title">March Madness</div>
   <div class="hdr-year">2 · 0 · 2 · 6</div>
-  <div><span class="live-pill"><span class="pill-dot"></span>Round of 64 · Live</span></div>
+  <div><span class="live-pill" id="round-pill"><span class="pill-dot"></span>Round of 64 · Live</span></div>
 </div>
 
 <div class="tabs-wrap">
@@ -214,13 +221,13 @@ var POTS = {
 
 /* owner id → display props */
 var OWNERS = {
-  curt:   { name:'Curt',   color:'#f59e0b', paid:6450,  r1won:0 },
-  stark:  { name:'Stark',  color:'#ef4444', paid:5825,  r1won:0 },
-  topper: { name:'Topper', color:'#22c55e', paid:4915,  r1won:0 },
-  tommy:  { name:'Tommy',  color:'#ec4899', paid:3350,  r1won:0 },
-  flan:   { name:'Flan',   color:'#3b82f6', paid:2995,  r1won:0 },
-  dolla:  { name:'Dolla',  color:'#a855f7', paid:1820,  r1won:0 },
-  hudd:   { name:'Hudd',   color:'#06b6d4', paid:1805,  r1won:0 }
+  curt:   { name:'Curt',   color:'#f59e0b', paid:6450 },
+  stark:  { name:'Stark',  color:'#ef4444', paid:5825 },
+  topper: { name:'Topper', color:'#22c55e', paid:4915 },
+  tommy:  { name:'Tommy',  color:'#ec4899', paid:3350 },
+  flan:   { name:'Flan',   color:'#3b82f6', paid:2995 },
+  dolla:  { name:'Dolla',  color:'#a855f7', paid:1820 },
+  hudd:   { name:'Hudd',   color:'#06b6d4', paid:1805 }
 };
 
 /* Hardcoded ESPN CDN logo URLs — loads instantly, no API wait
@@ -289,7 +296,10 @@ var LOGOS = {
   'CA Baptist':     L+'2856.png',
   'N. Dakota St.':  L+'2449.png',
   'Furman':         L+'231.png',
-  'Siena':          L+'2561.png'
+  'Siena':          L+'2561.png',
+  /* Added for completeness */
+  'Tennessee St.':  L+'2630.png',
+  'Long Island':    L+'2374.png'
 };
 
 /* All 64 teams
@@ -399,17 +409,37 @@ function projectedAdvancer(region, seeds) {
   return null;
 }
 
-/* Confirmed R1 winners (hardcoded for initial load) */
-var CONFIRMED_R1 = ['VCU','Texas A&M','Saint Louis','High Point','TCU','Texas'];
-/* Teams confirmed advanced but NOT R1 eligible (seeds 1-3) */
-var CONFIRMED_ADV_TOP = ['Michigan St.','Gonzaga'];
-/* Confirmed eliminated */
-var CONFIRMED_LOST = ['Georgia','Kennesaw St.','N. Dakota St.','Hofstra','Wisconsin','BYU',"Saint Mary's",'UNC','Ohio State'];
+/* Confirmed R1 winners — r1eligible seeds (8–16) that won Round of 64 */
+var CONFIRMED_R1 = [
+  'VCU','Texas A&M','Saint Louis','High Point','TCU','Texas',  /* existing */
+  'Iowa','Utah State'                                          /* all R1 now complete */
+];
+/* Teams confirmed advanced (won R1) but NOT r1eligible (seeds 1–7) */
+var CONFIRMED_ADV_TOP = [
+  'Michigan St.','Gonzaga','Texas Tech','Kentucky',            /* existing */
+  /* 1-seeds */ 'Florida','Michigan','Arizona','Duke',
+  /* 2-seeds */ 'Houston','Iowa State','Purdue','UConn',
+  /* 3-seeds */ 'Illinois','Virginia',
+  /* 4-seeds */ 'Nebraska','Alabama','Arkansas','Kansas',
+  /* 5-seeds */ 'Vanderbilt',"St. John's",
+  /* 6-seeds */ 'Tennessee','Louisville',
+  /* 7-seeds */ 'UCLA','Miami'
+];
+/* Confirmed eliminated — all R1 losers */
+var CONFIRMED_LOST = [
+  /* existing */  'Georgia','Kennesaw St.','N. Dakota St.','Hofstra','Wisconsin','BYU',"Saint Mary's",'UNC','Ohio State','Akron',
+  /* South */     'Clemson','McNeese','Troy','Penn','Idaho','Prairie View/Lehigh',
+  /* Midwest */   'SMU/Miami OH','Wright State','Santa Clara','Tennessee St.','UMBC/Howard',
+  /* West */      'Villanova','Hawaii','Missouri','Queens','Long Island',
+  /* East */      'Northern Iowa','CA Baptist','S. Florida','UCF','Furman','Siena'
+];
 
-/* Apply confirmed statuses */
+/* Apply confirmed statuses.
+   wonR1: permanent flag set once a team wins R1 — does NOT change if they later go
+   'live' or 'lost' in R32+. All R1 prize math uses wonR1, not status. */
 TEAMS.forEach(function(t) {
   if (CONFIRMED_LOST.indexOf(t.name) > -1)  t.status = 'lost';
-  if (CONFIRMED_R1.indexOf(t.name) > -1)     t.status = 'won';
+  if (CONFIRMED_R1.indexOf(t.name) > -1)    { t.status = 'won'; t.wonR1 = true; }
   if (CONFIRMED_ADV_TOP.indexOf(t.name) > -1) t.status = 'won';
 });
 
@@ -418,7 +448,8 @@ TEAMS.forEach(function(t) {
 ═══════════════════════════════════════════════════════ */
 
 function getR1Winners() {
-  return TEAMS.filter(function(t){ return t.r1eligible && t.status === 'won'; });
+  /* Use wonR1 flag — permanent once set, unaffected by later 'live'/'lost' status */
+  return TEAMS.filter(function(t){ return t.r1eligible && t.wonR1; });
 }
 
 function getR1PerTeam() {
@@ -431,24 +462,16 @@ function ownerEarned(oid) {
   var r1pp = getR1PerTeam();
   TEAMS.forEach(function(t) {
     if (t.owner !== oid) return;
-    if (t.status === 'won' && t.r1eligible) total += r1pp;
+    if (t.r1eligible && t.wonR1) total += r1pp;   /* wonR1 stable across live/lost */
   });
   return total;
 }
 
 function teamEarned(t) {
-  /* Returns dollars this specific team has earned so far */
+  /* Returns dollars this specific team has earned — stable even when live/lost in R32 */
   var total = 0;
-  if (t.r1eligible && t.status === 'won') total += getR1PerTeam();
+  if (t.r1eligible && t.wonR1) total += getR1PerTeam();
   return total;
-}
-
-function ownerAlive(oid) {
-  return TEAMS.filter(function(t){ return t.owner === oid && t.status !== 'lost'; }).length;
-}
-
-function ownerTotal(oid) {
-  return TEAMS.filter(function(t){ return t.owner === oid; }).length;
 }
 
 function ownerNet(oid) {
@@ -462,6 +485,8 @@ function ownerNet(oid) {
 var liveGames = [];
 var completedGames = [];
 var upcomingGames = [];
+/* Dates (YYYY-MM-DD) confirmed to contain R32 games — populated at fetch time */
+var knownR32Dates = {};
 
 function espnNameMatch(espnName) {
   var n = (espnName || '').toLowerCase().trim();
@@ -478,6 +503,35 @@ function espnNameMatch(espnName) {
 function fetchESPN(dateStr) {
   var url = 'https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?dates=' + dateStr;
   return fetch(url).then(function(r){ return r.json(); }).catch(function(){ return null; });
+}
+
+/* Detect game round using ESPN notes + team-status fallback.
+   Populates knownR32Dates so dateSectionLabel can label correctly. */
+function getGameRound(ev, teams) {
+  /* Method 1: ESPN competition notes headline — most reliable */
+  var comp = ev.competitions && ev.competitions[0];
+  if (comp && comp.notes && comp.notes.length) {
+    var hl = (comp.notes[0].headline || '').toLowerCase();
+    if (hl.indexOf('second') > -1 || hl.indexOf('2nd') > -1 || hl.indexOf('round of 32') > -1) {
+      var etDate = toETDate(ev.date || '');
+      if (etDate) knownR32Dates[etDate] = true;
+      return 'R32';
+    }
+    if (hl.indexOf('sweet') > -1)  return 'S16';
+    if (hl.indexOf('elite') > -1)  return 'E8';
+    if (hl.indexOf('final four') > -1 || hl.indexOf('semifinal') > -1) return 'F4';
+    if (hl.indexOf('national') > -1 || hl.indexOf('championship') > -1) return 'NCG';
+  }
+  /* Method 2: both tracked teams already won R64 → must be R32 */
+  if (teams) {
+    var matched = teams.filter(function(t){ return t.matched; });
+    if (matched.length >= 2 && matched.every(function(t){ return t.matched.status === 'won'; })) {
+      var etDate2 = toETDate(ev.date || '');
+      if (etDate2) knownR32Dates[etDate2] = true;
+      return 'R32';
+    }
+  }
+  return 'R64';
 }
 
 function processESPN(data) {
@@ -513,16 +567,23 @@ function processESPN(data) {
       return { espnName: nm, matched: matched, score: sc, winner: winner, homeAway: c.homeAway, logoUrl: logoUrl };
     });
 
-    /* Update team statuses + logos from ESPN — never downgrade a confirmed win */
+    var gameRound = getGameRound(ev, teams);
+
+    /* Update team statuses + logos from ESPN */
     teams.forEach(function(t) {
       if (!t.matched) return;
       if (t.logoUrl && !t.matched.logo) t.matched.logo = t.logoUrl;
       if (s === 'post') {
         var next = t.winner ? 'won' : 'lost';
-        if (t.matched.status === 'won' && next === 'lost') return;
+        /* Guard: only protect a confirmed R1 win from stale R64 data.
+           R32 results always take effect (a team can lose in R32). */
+        if (t.matched.status === 'won' && next === 'lost' && gameRound === 'R64') return;
         t.matched.status = next;
+        /* Lock wonR1 for any r1eligible team that ESPN confirms won a R64 game */
+        if (t.winner && gameRound === 'R64' && t.matched.r1eligible) t.matched.wonR1 = true;
       } else if (s === 'in') {
-        if (t.matched.status !== 'won') t.matched.status = 'live';
+        /* Always go live when in progress — including R32 teams that already 'won' R1 */
+        t.matched.status = 'live';
       }
     });
 
@@ -531,6 +592,7 @@ function processESPN(data) {
       state: s,
       detail: detail,
       date: ev.date || '',   /* ISO tip-off time for sorting */
+      round: gameRound,
       t1: teams[0],
       t2: teams[1],
       title: ev.shortName || ''
@@ -551,11 +613,10 @@ function processESPN(data) {
 }
 
 function fetchAll() {
-  /* Fetch all 4 days of R1 (Mar 20-23) so ESPN returns team+logo data
-     for every team — even games that haven't been played yet.
-     Also fetch today/yesterday dynamically in case the app is used
-     outside tournament dates. */
-  var r1Dates = ['20260320','20260321','20260322','20260323'];
+  /* Fetch R64 (Mar 20-23) + R32 (Mar 22-25) windows.
+     Overlapping dates are deduplicated below.
+     Also fetch today/yesterday dynamically for live use. */
+  var r1Dates = ['20260320','20260321','20260322','20260323','20260324','20260325'];
   var today = new Date();
   var d = today.toISOString().slice(0,10).replace(/-/g,'');
   var yesterday = new Date(today); yesterday.setDate(yesterday.getDate()-1);
@@ -590,13 +651,27 @@ function renderStandings() {
     var o = OWNERS[oid];
     var net = ownerNet(oid);
     var earned = ownerEarned(oid);
-    var alive = ownerAlive(oid);
-    var total = ownerTotal(oid);
     var netStr = (net >= 0 ? '+$' : '-$') + Math.abs(Math.round(net)).toLocaleString();
     var cls = net >= 0 ? 'pos' : '';
     /* Center the lone last card when total count is odd */
     var isLast = (i === sorted.length - 1) && (sorted.length % 2 === 1);
     var style = 'style="--oc:' + o.color + (isLast ? ';grid-column:1/-1;max-width:calc(50% - 4px);margin:0 auto;width:100%' : '') + '"';
+    /* Logo strip — only teams still alive/live/won (not eliminated) */
+    var myTeams = TEAMS.filter(function(t){ return t.owner === oid; })
+                       .sort(function(a,b){ return a.seed - b.seed; });
+    var activeTeams = myTeams.filter(function(t){ return t.status !== 'lost'; });
+    var logosHtml = '';
+    activeTeams.forEach(function(t) {
+      var src = t.logo || LOGOS[t.name] || '';
+      var te = teamEarned(t);
+      var logoEl = src
+        ? '<img src="' + src + '" alt="' + t.name + '" onerror="this.style.display=\'none\'">'
+        : '<div class="scard-logo-fb">' + t.seed + '</div>';
+      var liveEl  = t.status === 'live' ? '<span class="scard-logo-live"></span>' : '';
+      var earnEl  = te > 0 ? '<span class="scard-logo-earn">+$' + Math.round(te).toLocaleString() + '</span>' : '';
+      logosHtml += '<div class="scard-logo-wrap">' + logoEl + liveEl + earnEl + '</div>';
+    });
+
     html +=
       '<div class="scard" ' + style + '>' +
         '<div class="scard-rank">#' + (i+1) + '</div>' +
@@ -604,10 +679,10 @@ function renderStandings() {
         '<div class="scard-net ' + cls + '">' + netStr + '</div>' +
         '<div class="scard-name">' + o.name + '</div>' +
         '<div class="scard-stats">' +
-          'Paid: <b>$' + o.paid.toLocaleString() + '</b><br>' +
-          'Earned: <b style="color:' + (earned > 0 ? '#22c55e' : '#4a4a66') + '">' + (earned > 0 ? '+$'+Math.round(earned).toLocaleString() : '$0') + '</b><br>' +
-          alive + '/' + total + ' teams alive' +
+          'Paid <b>$' + o.paid.toLocaleString() + '</b> · ' +
+          'Earned <b style="color:' + (earned > 0 ? '#22c55e' : '#4a4a66') + '">' + (earned > 0 ? '+$'+Math.round(earned).toLocaleString() : '$0') + '</b>' +
         '</div>' +
+        (logosHtml ? '<div class="scard-logos">' + logosHtml + '</div>' : '') +
       '</div>';
   });
   el.innerHTML = html;
@@ -631,17 +706,29 @@ function renderTeams() {
   sorted.forEach(function(oid, rank) {
     var o = OWNERS[oid];
     var myTeams = TEAMS.filter(function(t){ return t.owner === oid; })
-                       .sort(function(a,b){ return a.seed - b.seed; });
+                       .sort(function(a,b){
+                         /* Live = top, then alive/won, then eliminated — within each tier by seed */
+                         function pri(t) {
+                           if (t.status === 'live') return 0;
+                           if (t.status === 'lost') return 2;
+                           return 1;
+                         }
+                         var ap = pri(a), bp = pri(b);
+                         if (ap !== bp) return ap - bp;
+                         return a.seed - b.seed;
+                       });
     var earned = ownerEarned(oid);
     var net = ownerNet(oid);
     var netStr = (net >= 0 ? '+$' : '-$') + Math.abs(Math.round(net)).toLocaleString();
     var netColor = net >= 0 ? '#22c55e' : '#4a4a66';
+    var hasLive = myTeams.some(function(t){ return t.status === 'live'; });
 
     html += '<div class="rcol" style="--oc:' + o.color + '">' +
       '<div class="rcol-hdr">' +
         '<div style="display:flex;align-items:center;gap:7px">' +
           '<span class="rcol-rank">' + (rank + 1) + '</span>' +
           '<div class="rcol-name">' + o.name + '</div>' +
+          (hasLive ? '<span style="width:7px;height:7px;border-radius:50%;background:#f59e0b;animation:blink 1.2s ease-in-out infinite;flex-shrink:0;display:inline-block"></span>' : '') +
           (earned > 0 ? '<span style="font-size:10px;font-weight:700;color:#4ade80;margin-left:2px">+$' + Math.round(earned).toLocaleString() + '</span>' : '') +
         '</div>' +
         '<div class="rcol-sub">' + myTeams.length + ' teams · $' + o.paid.toLocaleString() + '</div>' +
@@ -649,21 +736,43 @@ function renderTeams() {
       '</div>';
 
     myTeams.forEach(function(t) {
-      var earned = teamEarned(t);
+      var te = teamEarned(t);
       var badgeHtml = '';
       var nameCls = 'tname alive';
-      if (t.status === 'won') {
-        nameCls = 'tname won';
-        /* Show earnings if any, otherwise plain W */
-        badgeHtml = earned > 0
-          ? '<span class="tbadge money">+$' + Math.round(earned).toLocaleString() + '</span>'
-          : '<span class="tbadge won">W</span>';
-      } else if (t.status === 'live') {
+
+      if (t.status === 'live') {
         nameCls = 'tname live';
-        badgeHtml = '<span class="tbadge live">▶</span>';
+        /* Look up live score from liveGames */
+        var liveScore = '';
+        for (var li = 0; li < liveGames.length; li++) {
+          var lg = liveGames[li];
+          if (lg.t1.matched === t || lg.t2.matched === t) {
+            var me  = lg.t1.matched === t ? lg.t1 : lg.t2;
+            var opp = lg.t1.matched === t ? lg.t2 : lg.t1;
+            liveScore = me.score + '–' + opp.score;
+            break;
+          }
+        }
+        /* Show live score + existing earnings if any */
+        if (te > 0) {
+          badgeHtml = '<span class="tbadge money" style="background:#1a1000;color:#f59e0b">▶ ' + (liveScore || 'LIVE') + '</span>';
+        } else {
+          badgeHtml = '<span class="tbadge live">' + (liveScore ? liveScore : '▶') + '</span>';
+        }
+      } else if (t.status === 'won') {
+        if (te > 0) {
+          nameCls = 'tname earning';
+          badgeHtml = '<span class="tbadge money">+$' + Math.round(te).toLocaleString() + '</span>';
+        } else {
+          nameCls = 'tname adv';
+          badgeHtml = '<span class="tbadge adv">ADV</span>';
+        }
       } else if (t.status === 'lost') {
         nameCls = 'tname elim';
-        badgeHtml = '<span class="tbadge elim">✕</span>';
+        /* Show earnings even on eliminated teams that already earned R1 */
+        badgeHtml = te > 0
+          ? '<span class="tbadge money" style="opacity:.6">+$' + Math.round(te).toLocaleString() + '</span>'
+          : '<span class="tbadge elim">✕</span>';
       }
 
       var logoSrc = t.logo || LOGOS[t.name] || '';
@@ -700,24 +809,6 @@ function gameRowHtml(g) {
   var isLive = g.state === 'in';
   var isDone = g.state === 'post';
 
-  function teamRow(t, opp) {
-    var nameCls = (isDone && !t.winner) ? 'gteam-name elim' : 'gteam-name';
-    var scoreCls = (isDone && t.winner) ? 'gscore winner' : 'gscore';
-    var logoTxt = t.espnName ? t.espnName.charAt(0).toUpperCase() : '?';
-    if (t.matched) logoTxt = t.matched.name.slice(0,2).toUpperCase();
-
-    var scoreHtml = (isLive || isDone)
-      ? '<div class="' + scoreCls + '">' + t.score + '</div>'
-      : '<div class="gscore dimtxt">–</div>';
-
-    return '<div class="grow">' +
-      '<div class="glogo">' + logoTxt + '</div>' +
-      '<div class="gteam"><div class="' + nameCls + '">' + t.espnName + '</div>' + ownerTag(t) + '</div>' +
-      scoreHtml +
-      '<div class="gright"></div>' +
-    '</div>';
-  }
-
   /* Status column for first team row */
   var statusHtml = '';
   if (isLive) {
@@ -730,9 +821,10 @@ function gameRowHtml(g) {
     statusHtml = '<div class="gsched">' + formatTipoff(g.date, g.detail) + '</div>';
   }
 
-  /* #3: payout callout for R1 winners in concluded games */
+  /* #3: payout callout for R1 winners — only on R64 concluded games */
   function payoutBadge(t) {
     if (!isDone || !t.winner) return '';
+    if (g.round !== 'R64') return '';             /* R1 prize only awarded in R64 */
     if (!t.matched || !t.matched.r1eligible) return '';
     var pp = getR1PerTeam();
     if (!pp) return '';
@@ -795,9 +887,9 @@ function concludedCardHtml(g) {
   var winName  = winner.matched ? winner.matched.name : winner.espnName;
   var loseName = loser.matched  ? loser.matched.name  : loser.espnName;
 
-  /* Payout — shown once, only here */
+  /* Payout — shown once, only for R64 concluded games */
   var pp = getR1PerTeam();
-  var payoutHtml = (winner.matched && winner.matched.r1eligible && pp)
+  var payoutHtml = (g.round === 'R64' && winner.matched && winner.matched.r1eligible && pp)
     ? '<span style="font-size:9px;font-weight:700;color:#4ade80;background:#0a2010;padding:1px 5px;border-radius:3px">+$' + pp + ' R1</span>'
     : '';
 
@@ -919,11 +1011,12 @@ function formatTipoff(isoDate, fallback) {
   return h + ':' + (m < 10 ? '0' + m : m) + ' ' + ampm + ' ET';
 }
 
-/* Section date label: "MAR 20 · ROUND OF 64" */
+/* Section date label: "MAR 21 · ROUND OF 32" — uses knownR32Dates populated at fetch time */
 function dateSectionLabel(ymd) {
   var months = ['','JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
   var parts = ymd.split('-');
-  return months[parseInt(parts[1], 10)] + ' ' + parseInt(parts[2], 10) + ' · ROUND OF 64';
+  var roundLabel = knownR32Dates[ymd] ? 'ROUND OF 32' : 'ROUND OF 64';
+  return months[parseInt(parts[1], 10)] + ' ' + parseInt(parts[2], 10) + ' · ' + roundLabel;
 }
 
 function renderGames() {
@@ -957,7 +1050,8 @@ function renderGames() {
     });
     var out = '';
     order.forEach(function(d) {
-      var label = d === 'unknown' ? 'ROUND OF 64' : dateSectionLabel(d);
+      var hasR32g = groups[d].some(function(g){ return g.round === 'R32'; });
+      var label = d === 'unknown' ? (hasR32g ? 'ROUND OF 32' : 'ROUND OF 64') : dateSectionLabel(d);
       out += '<div class="gsec"><div class="gsec-hdr">' + label + '</div><div class="gmatch-list">';
       groups[d].forEach(function(g) { out += '<div class="gcard">' + gameRowHtml(g) + '</div>'; });
       out += '</div></div>';
@@ -970,12 +1064,14 @@ function renderGames() {
     html += renderDateGroup(upcomingGames, true);
   }
 
-  /* ── 2b. ROUND OF 32 PROJECTED ── */
-  html += renderProjectedR32();
+  /* ── 2b. ROUND OF 32 PROJECTED ──
+     Hide once actual R32 games are in the feed (live, upcoming, or concluded) */
+  var hasR32 = [].concat(liveGames, upcomingGames, completedGames)
+                 .some(function(g){ return g.round === 'R32'; });
+  if (!hasR32) html += renderProjectedR32();
 
   /* ── 3. CONCLUDED — winner-centric cards, most recent first ── */
   if (completedGames.length > 0) {
-    html += '<div class="gsec-hdr" style="margin:4px 0 10px;font-size:10px;font-weight:700;letter-spacing:2.5px;color:#4a4a66;text-transform:uppercase">Concluded</div>';
     /* Use concludedCardHtml for clean layout — score shown once, no redundancy */
     var sortedDone = completedGames.slice().sort(function(a,b){ return (b.date||'').localeCompare(a.date||''); });
     var doneGroups = {}, doneOrder = [];
@@ -985,7 +1081,8 @@ function renderGames() {
       doneGroups[d].push(g);
     });
     doneOrder.forEach(function(d) {
-      var label = d === 'unknown' ? 'ROUND OF 64' : dateSectionLabel(d);
+      var hasR32d = doneGroups[d].some(function(g){ return g.round === 'R32'; });
+      var label = d === 'unknown' ? (hasR32d ? 'ROUND OF 32' : 'ROUND OF 64') : dateSectionLabel(d);
       html += '<div class="gsec"><div class="gsec-hdr">' + label + '</div><div class="gmatch-list">';
       doneGroups[d].forEach(function(g) { html += '<div class="gcard">' + concludedCardHtml(g) + '</div>'; });
       html += '</div></div>';
@@ -1095,6 +1192,92 @@ function renderPayouts() {
       '<div class="prow-tbd">Winner takes all</div>' +
     '</div>';
 
+  /* ── Side pot leader computation ── */
+  var r64Done = completedGames.filter(function(g){ return g.round === 'R64'; });
+
+  /* Biggest R1 Loss — largest margin of defeat in R64 */
+  var bloss = null, blossMargin = -1;
+  r64Done.forEach(function(g) {
+    var winner = g.t1.winner ? g.t1 : (g.t2.winner ? g.t2 : null);
+    var loser  = g.t1.winner ? g.t2 : (g.t2.winner ? g.t1 : null);
+    if (!winner || !loser) return;
+    var m = winner.score - loser.score;
+    if (m > blossMargin || (m === blossMargin && loser.score < (bloss ? bloss.loser.score : Infinity))) {
+      blossMargin = m; bloss = { winner: winner, loser: loser, margin: m };
+    }
+  });
+  var blossLeaderHtml = '';
+  if (bloss) {
+    var blt = bloss.loser.matched;
+    var blown = blt ? OWNERS[blt.owner] : null;
+    blossLeaderHtml = '<div style="margin-top:8px;color:#7a7a96;font-size:10px;line-height:1.6">Current leader: ' +
+      '<b style="color:#c4c4dc">' + (blt ? blt.name : bloss.loser.espnName) + '</b>' +
+      (blown ? ' <span style="background:' + blown.color + ';color:#000;font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px">' + blown.name + '</span>' : '') +
+      ' — lost by <b style="color:#ef4444">' + bloss.margin + ' pts</b> (' + bloss.winner.score + '–' + bloss.loser.score + ')</div>';
+  } else if (r64Done.length === 0) {
+    blossLeaderHtml = '<div style="margin-top:8px;color:#2e2e44;font-size:10px;font-style:italic">Loading…</div>';
+  }
+
+  /* Biggest Upset — largest seed differential (higher seed beats lower seed) */
+  var bupset = null, bupsetDiff = -1;
+  r64Done.forEach(function(g) {
+    var winner = g.t1.winner ? g.t1 : (g.t2.winner ? g.t2 : null);
+    var loser  = g.t1.winner ? g.t2 : (g.t2.winner ? g.t1 : null);
+    if (!winner || !loser || !winner.matched || !loser.matched) return;
+    var diff = winner.matched.seed - loser.matched.seed;
+    if (diff <= 0) return;
+    if (diff > bupsetDiff || (diff === bupsetDiff && winner.matched.seed > (bupset ? bupset.winner.matched.seed : 0))) {
+      bupsetDiff = diff; bupset = { winner: winner, loser: loser, diff: diff };
+    }
+  });
+  var bupsetLeaderHtml = '';
+  if (bupset) {
+    var bwt = bupset.winner.matched;
+    var bwown = bwt ? OWNERS[bwt.owner] : null;
+    bupsetLeaderHtml = '<div style="margin-top:8px;color:#7a7a96;font-size:10px;line-height:1.6">Current leader: ' +
+      '<b style="color:#c4c4dc">' + (bwt ? bwt.seed + ' ' + bwt.name : bupset.winner.espnName) + '</b>' +
+      (bwown ? ' <span style="background:' + bwown.color + ';color:#000;font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px">' + bwown.name + '</span>' : '') +
+      ' over <span style="color:#3a3a55">' + (bupset.loser.matched ? bupset.loser.matched.seed + ' ' + bupset.loser.matched.name : bupset.loser.espnName) + '</span>' +
+      ' — <b style="color:#22c55e">+' + bupset.diff + ' seed diff</b></div>';
+  } else if (r64Done.length === 0) {
+    bupsetLeaderHtml = '<div style="margin-top:8px;color:#2e2e44;font-size:10px;font-style:italic">Loading…</div>';
+  }
+
+  /* Best 15/16 Seed — furthest 15 or 16 seed; if all out, closest R64 margin */
+  var alive1516 = TEAMS.filter(function(t){ return (t.seed === 15 || t.seed === 16) && t.status !== 'lost'; });
+  var best1516StatusHtml = '';
+  if (alive1516.length > 0) {
+    best1516StatusHtml = '<div style="margin-top:8px;color:#7a7a96;font-size:10px;line-height:1.6">Still alive: ' +
+      alive1516.map(function(t){
+        var ow = OWNERS[t.owner];
+        return '<b style="color:#22c55e">' + t.seed + ' ' + t.name + '</b>' +
+          (ow ? ' <span style="background:' + ow.color + ';color:#000;font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px">' + ow.name + '</span>' : '');
+      }).join(' · ') + '</div>';
+  } else {
+    /* All eliminated — find closest margin in R64 among 15/16 seeds */
+    var best1516g = null, best1516closest = Infinity;
+    r64Done.forEach(function(g) {
+      var winner = g.t1.winner ? g.t1 : (g.t2.winner ? g.t2 : null);
+      var loser  = g.t1.winner ? g.t2 : (g.t2.winner ? g.t1 : null);
+      if (!loser || !loser.matched) return;
+      if (loser.matched.seed !== 15 && loser.matched.seed !== 16) return;
+      var margin = winner ? (winner.score - loser.score) : 999;
+      if (margin < best1516closest || (margin === best1516closest && loser.matched.seed > (best1516g ? best1516g.loser.matched.seed : 0))) {
+        best1516closest = margin; best1516g = { winner: winner, loser: loser, margin: margin };
+      }
+    });
+    if (best1516g) {
+      var bt = best1516g.loser.matched;
+      var bown = bt ? OWNERS[bt.owner] : null;
+      best1516StatusHtml = '<div style="margin-top:8px;color:#7a7a96;font-size:10px;line-height:1.6">Current leader: ' +
+        '<b style="color:#c4c4dc">' + (bt ? bt.seed + ' ' + bt.name : best1516g.loser.espnName) + '</b>' +
+        (bown ? ' <span style="background:' + bown.color + ';color:#000;font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px">' + bown.name + '</span>' : '') +
+        ' — lost by <b style="color:#c4c4dc">' + best1516g.margin + ' pts</b></div>';
+    } else {
+      best1516StatusHtml = '<div style="margin-top:8px;color:#2e2e44;font-size:10px;font-style:italic">Loading…</div>';
+    }
+  }
+
   /* Special pots */
   html +=
     '<div class="slabel mt">Special Side Pots</div>' +
@@ -1104,6 +1287,7 @@ function renderPayouts() {
         '<div class="prow-amt">$' + POTS.loss.toFixed(0) + '</div>' +
       '</div>' +
       '<div class="prow-special">Largest point-margin defeat in Round of 64. Tiebreaker: lowest points scored. If still tied, teams split.</div>' +
+      blossLeaderHtml +
     '</div>' +
     '<div class="prow">' +
       '<div class="prow-hdr">' +
@@ -1111,6 +1295,7 @@ function renderPayouts() {
         '<div class="prow-amt">$' + POTS.upset.toFixed(0) + '</div>' +
       '</div>' +
       '<div class="prow-special">Largest seed differential upset throughout the tournament. Tiebreaker: higher seed wins. Example: 13-over-4 beats 11-over-2 (same diff, 13 is higher seed).</div>' +
+      bupsetLeaderHtml +
     '</div>' +
     '<div class="prow">' +
       '<div class="prow-hdr">' +
@@ -1118,6 +1303,7 @@ function renderPayouts() {
         '<div class="prow-amt">$' + POTS.seed15.toFixed(0) + '</div>' +
       '</div>' +
       '<div class="prow-special">Awarded to the 15 or 16 seed that goes furthest. If tied, determined by margin of defeat in final shared round.</div>' +
+      best1516StatusHtml +
     '</div>';
 
   el.innerHTML = html;
@@ -1140,6 +1326,14 @@ function switchTab(name, btn) {
 ═══════════════════════════════════════════════════════ */
 
 function renderAll() {
+  /* Update header pill: Round of 32 once any R32 game is in the feed */
+  var hasR32 = [].concat(liveGames, upcomingGames, completedGames)
+                 .some(function(g){ return g.round === 'R32'; });
+  var pill = document.getElementById('round-pill');
+  if (pill) {
+    var roundTxt = hasR32 ? 'Round of 32' : 'Round of 64';
+    pill.innerHTML = '<span class="pill-dot"></span>' + roundTxt + ' · Live';
+  }
   renderStandings();
   renderTeams();
   renderGames();
