@@ -207,6 +207,20 @@ html,body{
 .mcard-earn{font-size:8px;font-weight:800;padding:1px 5px;border-radius:3px;white-space:nowrap;margin-top:1px}
 .mcard-earn.r1 {background:#0d1a07;color:#4ade80}
 .mcard-earn.s16{background:#0d0d20;color:#818cf8}
+/* upset eligibility banner — sits between top bar and body */
+.upset-banner{
+  display:flex;align-items:center;justify-content:center;gap:5px;
+  padding:4px 11px;font-size:8px;font-weight:800;letter-spacing:.8px;
+  text-transform:uppercase;border-bottom:1px solid transparent;
+}
+.upset-banner.beats{
+  background:rgba(245,158,11,.12);color:#f59e0b;
+  border-bottom-color:rgba(245,158,11,.2);
+}
+.upset-banner.ties{
+  background:rgba(245,158,11,.06);color:#b97f20;
+  border-bottom-color:rgba(245,158,11,.1);
+}
 
 /* center col: score or VS + status label */
 .mcard-mid{
@@ -311,15 +325,15 @@ html,body{
 
   <!-- SCROLL AREA -->
   <div class="scroll-area" id="scroll-area">
-    <!-- Teams panel -->
-    <div class="panel on" id="panel-teams">
-      <div class="sec-label" id="teams-label">All Owners</div>
-      <div class="owner-list" id="owner-list"></div>
+    <!-- Games panel -->
+    <div class="panel on" id="panel-games">
+      <div id="games-content"></div>
     </div>
 
-    <!-- Games panel -->
-    <div class="panel" id="panel-games">
-      <div id="games-content"></div>
+    <!-- Teams panel -->
+    <div class="panel" id="panel-teams">
+      <div class="sec-label" id="teams-label">All Owners</div>
+      <div class="owner-list" id="owner-list"></div>
     </div>
 
     <!-- Standings panel -->
@@ -337,13 +351,13 @@ html,body{
 
   <!-- BOTTOM NAV -->
   <nav class="bottom-nav">
-    <button class="nav-btn on" onclick="switchTab('teams',this)">
-      <span class="nav-icon">🏀</span>
-      <span class="nav-label">Teams</span>
-    </button>
-    <button class="nav-btn" onclick="switchTab('games',this)">
+    <button class="nav-btn on" onclick="switchTab('games',this)">
       <span class="nav-icon">📋</span>
       <span class="nav-label">Games</span>
+    </button>
+    <button class="nav-btn" onclick="switchTab('teams',this)">
+      <span class="nav-icon">🏀</span>
+      <span class="nav-label">Teams</span>
     </button>
     <button class="nav-btn" onclick="switchTab('standings',this)">
       <span class="nav-icon">🏆</span>
@@ -528,8 +542,8 @@ TEAMS.forEach(function(t) {
 function getR1Winners() { return TEAMS.filter(function(t){ return t.r1eligible && t.wonR1; }); }
 function getR1PerTeam() { var w=getR1Winners().length; return w>0?Math.ceil(POTS.r1/w):0; }
 
-/* Currency formatter — whole dollars, no cents */
-function c(n){ return Math.round(Number(n)).toLocaleString('en-US'); }
+/* Currency formatter — whole dollars with commas, no decimals */
+function c(n){ return Math.floor(Number(n)).toLocaleString('en-US'); }
 
 function computeS16PerTeam() {
   var eligible = TEAMS.filter(function(t){ return t.seed>=4 && t.status!=='lost'; });
@@ -1016,6 +1030,24 @@ function renderGames() {
     + '</div>';
   }
 
+  /* Upset eligibility banner — shown on upcoming/live games where underdog win
+     would beat or tie the current Biggest Upset leader seed diff               */
+  function upsetBannerHtml(g) {
+    var tm1 = g.t1.matched, tm2 = g.t2.matched;
+    if(!tm1 || !tm2) return '';
+    var diff = Math.abs(tm1.seed - tm2.seed);
+    if(diff < 2) return ''; /* same-seed matchup or 1-diff — not interesting */
+    var sp = computeSidePots();
+    var leader = sp.bupsetDiff;
+    var leaderOwner = sp.upsetWinners.length ? (OWNERS[sp.upsetWinners[0]]||{name:sp.upsetWinners[0]}).name : 'TBD';
+    if(diff > leader) {
+      return '<div class="upset-banner beats">⚡ +'+diff+' upset potential — BEATS upset leader '+leaderOwner+' (+'+leader+')</div>';
+    } else if(diff === leader) {
+      return '<div class="upset-banner ties">⚡ +'+diff+' upset potential — TIES upset leader '+leaderOwner+' (+'+leader+')</div>';
+    }
+    return '';
+  }
+
   /* LIVE */
   if(liveGames.length) {
     html += '<div class="games-section"><div class="games-sec-hdr"><span class="live-dot"></span>LIVE NOW</div><div class="game-list">';
@@ -1023,6 +1055,7 @@ function renderGames() {
       var t1=g.t1, t2=g.t2;
       html += '<div class="mcard live">'
         + '<div class="mcard-top"><div class="mcard-top-left"><span class="live-dot"></span><span class="mcard-round">'+g.round+'</span></div><div class="mcard-top-right">'+g.detail+'</div></div>'
+        + upsetBannerHtml(g)
         + '<div class="mcard-body">'
           + teamCol(t1,g.round,false,'left')
           + midLive(t1,t2)
@@ -1047,6 +1080,7 @@ function renderGames() {
         var t1=g.t1,t2=g.t2;
         html += '<div class="mcard">'
           + '<div class="mcard-top"><div class="mcard-top-left"><span class="mcard-round">'+g.round+'</span></div><div class="mcard-top-right">'+(g.detail||'TBD')+'</div></div>'
+          + upsetBannerHtml(g)
           + '<div class="mcard-body">'
             + teamCol(t1,g.round,false,'left')
             + midVs()
