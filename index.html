@@ -94,19 +94,17 @@ html,body{
 .ocard::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--oc)}
 .ocard.has-live{border-color:rgba(245,158,11,.3)}
 
-/* owner header row */
-.ocard-hdr{
-  display:flex;align-items:flex-start;justify-content:space-between;
-  padding:13px 14px 10px;
-}
-.ocard-left{}
+/* owner header — 2-row layout */
+.ocard-hdr{display:flex;flex-direction:column;gap:3px;padding:13px 14px 10px;}
+.ocard-row1{display:flex;align-items:center;justify-content:space-between;}
+.ocard-row2{display:flex;align-items:baseline;justify-content:space-between;}
 .ocard-name{font-size:17px;font-weight:800;color:var(--oc);line-height:1;letter-spacing:-.3px}
-.ocard-stats{font-size:11px;color:#3a3a55;margin-top:5px;line-height:1.7}
+.ocard-alive-pill{font-size:9px;font-weight:700;color:#22c55e;background:rgba(34,197,94,.12);border-radius:20px;padding:2px 7px;margin-left:7px;letter-spacing:.3px}
+.ocard-stats{font-size:11px;color:#3a3a55;line-height:1.7}
 .ocard-stats b{color:#5a5a7a}
-.ocard-right{text-align:right}
 .ocard-net{font-size:20px;font-weight:800;line-height:1;color:#3a3a55}
 .ocard-net.pos{color:#22c55e}
-.ocard-netlabel{font-size:8px;font-weight:600;letter-spacing:1.5px;color:#2a2a3a;text-transform:uppercase;margin-top:2px}
+.ocard-netlabel{font-size:8px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase}
 
 /* team chips grid — 3 per row */
 .ocard-teams{
@@ -125,6 +123,7 @@ html,body{
 .tchip.live{background:#130f07}
 .tchip.earned{background:#0c130c}
 .tchip.lost{background:#0e0e14;opacity:.4}
+.tchip.lost.sp-winner{opacity:1}
 
 /* live pulse bar — left edge */
 .tchip.live::before{
@@ -148,7 +147,12 @@ html,body{
 
 /* earn tag on chip */
 .tchip-earn{font-size:7px;font-weight:800;color:#4ade80;letter-spacing:.2px;margin-top:2px}
+.tchip-loss-badge{display:inline-flex;align-items:center;gap:2px;font-size:7px;font-weight:800;color:#ef4444;background:#1a0808;border-radius:3px;padding:1px 4px;margin-top:2px;letter-spacing:.2px}
+.tchip-upset-badge{display:inline-flex;align-items:center;gap:2px;font-size:7px;font-weight:800;color:#f59e0b;background:#1a1000;border-radius:3px;padding:1px 4px;margin-top:2px;letter-spacing:.2px}
+.tchip-seed15-badge{display:inline-flex;align-items:center;gap:2px;font-size:7px;font-weight:800;color:#a78bfa;background:#0e0a1a;border-radius:3px;padding:1px 4px;margin-top:2px;letter-spacing:.2px}
 .tchip-live-dot{width:5px;height:5px;border-radius:50%;background:#f59e0b;animation:pulse 1s ease-in-out infinite;flex-shrink:0;margin-left:auto}
+/* owner card loss badge — shown in standings */
+.ocard-loss-badge{display:inline-flex;align-items:center;gap:3px;font-size:8px;font-weight:800;color:#ef4444;background:#1a0808;border:1px solid rgba(239,68,68,.2);border-radius:4px;padding:2px 6px;margin-top:5px}
 
 /* ══════════════════════════════════════════════════════
    GAMES TAB — full-width matchup cards
@@ -162,87 +166,63 @@ html,body{
 .games-sec-hdr .live-dot{width:6px;height:6px;background:#ef4444}
 .game-list{display:flex;flex-direction:column;gap:8px}
 
-/* matchup card */
-.mcard{
-  background:#111119;border-radius:14px;
-  overflow:hidden;border:1px solid #1a1a27;
-}
-.mcard.live{border-color:rgba(239,68,68,.35);background:#120a0a}
-.mcard.final{border-color:#181825}
+/* ── MATCHUP CARD ────────────────────────────────────── */
+.mcard{background:#111119;border-radius:12px;overflow:hidden;border:1px solid #1a1a27}
+.mcard.live{border-color:rgba(239,68,68,.4);background:#0f0808}
+.mcard.final{border-color:#16161f;opacity:.85}
 
-/* card top bar */
+/* top bar: round label + time/status */
 .mcard-top{
   display:flex;align-items:center;justify-content:space-between;
-  padding:7px 12px 6px;border-bottom:1px solid #16161f;
+  padding:6px 11px 5px;border-bottom:1px solid #15151e;
   font-size:9px;font-weight:700;letter-spacing:1.5px;
   color:#3a3a55;text-transform:uppercase;
 }
-.mcard.live .mcard-top{color:#ef4444}
-.mcard-top-left{display:flex;align-items:center;gap:5px}
-.mcard-round{color:inherit}
-.mcard-top-right{font-size:9px;font-weight:600;color:#3a3a55}
+.mcard.live .mcard-top{color:#ef4444;background:#180808}
+.mcard-top-right{font-size:9px;font-weight:600;color:#3a3a55;letter-spacing:.5px}
+.mcard.live .mcard-top-right{color:#ef4444}
 
-/* two-team layout */
-.mcard-teams{display:grid;grid-template-columns:1fr 44px 1fr;align-items:center}
-.mcard-team{display:flex;flex-direction:column;align-items:center;padding:12px 8px 10px;gap:6px}
-.mcard-team.left{align-items:flex-start;padding-left:12px}
-.mcard-team.right{align-items:flex-end;padding-right:12px}
+/* body: symmetric 3-col grid — left team | center | right team */
+.mcard-body{display:grid;grid-template-columns:1fr 58px 1fr;align-items:center;min-height:58px}
 
-/* team logo in matchup */
-.mcard-logo{width:36px;height:36px;border-radius:9px;object-fit:contain;background:#1a1a28;flex-shrink:0}
-.mcard-logo-fb{width:36px;height:36px;border-radius:9px;background:#1a1a28;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#34344a;flex-shrink:0}
+/* team side — left aligns left, right aligns right */
+.mcard-side{display:flex;align-items:center;gap:7px;padding:9px 6px 9px 11px}
+.mcard-side.right{flex-direction:row-reverse;padding:9px 11px 9px 6px}
 
-/* team info */
-.mcard-tinfo{display:flex;flex-direction:column;gap:3px;min-width:0;width:100%}
-.mcard-team.left .mcard-tinfo{align-items:flex-start}
-.mcard-team.right .mcard-tinfo{align-items:flex-end}
-.mcard-tname{font-size:12px;font-weight:600;color:#d0d0e4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+/* logo */
+.mcard-logo{width:30px;height:30px;border-radius:7px;object-fit:contain;background:#1a1a28;flex-shrink:0}
+.mcard-logo-fb{width:30px;height:30px;border-radius:7px;background:#1a1a28;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:#34344a;flex-shrink:0}
+.mcard.live .mcard-logo,.mcard.live .mcard-logo-fb{box-shadow:0 0 0 1.5px rgba(239,68,68,.4)}
+
+/* text info block */
+.mcard-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.mcard-side.right .mcard-info{align-items:flex-end}
+.mcard-tname{font-size:12px;font-weight:600;color:#cccce0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .mcard-tname.winner{color:#22c55e}
-.mcard-tname.loser{color:#2c2c3e;text-decoration:line-through}
-.mcard-tags{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
-.mcard-team.right .mcard-tags{justify-content:flex-end}
-.mcard-seed{font-size:9px;font-weight:700;color:#3a3a55;letter-spacing:.3px}
-.mcard-owner-tag{font-size:8px;font-weight:700;padding:1px 5px;border-radius:3px;color:#000;letter-spacing:.2px}
+.mcard-tname.loser{color:#252535;text-decoration:line-through}
+.mcard-meta{display:flex;align-items:center;gap:4px;flex-wrap:nowrap}
+.mcard-side.right .mcard-meta{flex-direction:row-reverse}
+.mcard-seed{font-size:9px;font-weight:700;color:#3a3a55}
+/* inline earn badge */
+.mcard-earn{font-size:8px;font-weight:800;padding:1px 5px;border-radius:3px;white-space:nowrap;margin-top:1px}
+.mcard-earn.r1 {background:#0d1a07;color:#4ade80}
+.mcard-earn.s16{background:#0d0d20;color:#818cf8}
 
-/* earn badge in matchup */
-.mcard-earn{
-  font-size:9px;font-weight:700;
-  padding:2px 6px;border-radius:4px;
-  white-space:nowrap;margin-top:2px;
-}
-.mcard-earn.r1{background:#0d1a07;color:#4ade80;border:1px solid rgba(74,222,128,.2)}
-.mcard-earn.s16{background:#0d0d20;color:#818cf8;border:1px solid rgba(129,140,248,.2)}
-
-/* center score/vs */
-.mcard-center{
+/* center col: score or VS + status label */
+.mcard-mid{
   display:flex;flex-direction:column;align-items:center;
-  justify-content:center;padding:8px 0;gap:4px;
+  justify-content:center;gap:3px;padding:6px 0;
+  border-left:1px solid #15151e;border-right:1px solid #15151e;
+  height:100%;
 }
-.mcard-score-wrap{display:flex;align-items:center;gap:6px}
-.mcard-score{font-size:22px;font-weight:800;line-height:1;color:#4a4a66}
-.mcard-score.winner{color:#22c55e}
-.mcard-score.loser{color:#2c2c3e}
-.mcard-dash{font-size:14px;font-weight:600;color:#2a2a3a}
-.mcard-vs{font-size:11px;font-weight:700;color:#2a2a3a;letter-spacing:.5px}
-.mcard-time{font-size:9px;color:#4a4a66;text-align:center;line-height:1.4}
-.mcard-time.live-txt{color:#ef4444;font-weight:700;letter-spacing:.5px}
-
-/* bottom pot bar */
-.mcard-pot{
-  padding:7px 12px;border-top:1px solid #16161f;
-  font-size:10px;color:#4a4a66;
-  display:flex;align-items:center;justify-content:space-between;
-  gap:8px;
-}
-.mcard-pot-label{font-size:9px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:#2a2a3a}
-.mcard-pot-items{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
-.mcard-pot-item{
-  display:flex;align-items:center;gap:4px;
-  font-size:9px;font-weight:700;
-  background:#14141e;border-radius:5px;padding:3px 7px;
-}
-.mcard-pot-item.r1-item{color:#4ade80}
-.mcard-pot-item.s16-item{color:#818cf8}
+.mcard-scores{display:flex;align-items:center;gap:3px}
+.mcard-sc{font-size:17px;font-weight:800;line-height:1;color:#4a4a66}
+.mcard-sc.win{color:#22c55e}
+.mcard-sc.lose{color:#222230}
+.mcard-sc-sep{font-size:11px;font-weight:600;color:#252530}
+.mcard-vs{font-size:11px;font-weight:800;color:#252530;letter-spacing:.5px}
+.mcard-status{font-size:8px;font-weight:700;color:#3a3a55;letter-spacing:.8px;text-transform:uppercase}
+.mcard-status.live{color:#ef4444;animation:pulse 1.4s ease-in-out infinite}
 
 /* ══════════════════════════════════════════════════════
    STANDINGS TAB
@@ -294,6 +274,22 @@ html,body{
 .pcard-tbd{font-size:10px;color:#2a2a3a;font-style:italic;margin-top:7px}
 .pcard-leader{font-size:10px;color:#5a5a7a;margin-top:6px;line-height:1.6;background:#13131e;border-radius:6px;padding:7px 10px}
 .pcard-sec{font-size:10px;font-weight:600;letter-spacing:2px;color:#3a3a55;text-transform:uppercase;margin:18px 0 8px}
+
+/* ── SIDE POT EXPANDABLE ─────────────────────────────── */
+.pcard-details{margin-top:9px}
+.pcard-details summary{font-size:8px;font-weight:700;color:#3a3a55;cursor:pointer;letter-spacing:.8px;text-transform:uppercase;list-style:none;display:inline-flex;align-items:center;gap:5px;user-select:none}
+.pcard-details summary::-webkit-details-marker{display:none}
+.pcard-details summary::after{content:'▶ SEE LOGIC';font-size:7px}
+.pcard-details[open] summary::after{content:'▼ HIDE'}
+.pcard-detail-body{margin-top:9px;overflow-x:auto}
+.pcard-tbl{width:100%;border-collapse:collapse;font-size:8.5px}
+.pcard-tbl th{text-align:left;color:#3a3a55;font-weight:700;letter-spacing:.5px;text-transform:uppercase;padding:3px 8px 4px 0;border-bottom:1px solid #1a1a2a;white-space:nowrap}
+.pcard-tbl td{padding:5px 8px 5px 0;color:#4a4a66;border-bottom:1px solid #111120;white-space:nowrap}
+.pcard-tbl tr.sp-win td{color:#e0e0f0;font-weight:700}
+.pcard-tbl .sp-margin{font-weight:800}
+.pcard-tbl .sp-w{color:#22c55e}
+.pcard-tbl .sp-l{color:#ef4444}
+.pcard-tbl .sp-owner{display:inline-block;font-size:7px;font-weight:700;padding:1px 4px;border-radius:2px;color:#000;vertical-align:middle}
 
 /* ── SCROLLBAR ───────────────────────────────────────── */
 ::-webkit-scrollbar{width:3px;height:3px}
@@ -507,6 +503,18 @@ var CONFIRMED_LOST = [
   'Northern Iowa','CA Baptist','S. Florida','UCF','Furman','Siena'
 ];
 
+/* ── CONFIRMED SIDE POT RESULTS ────────────────────────────
+   Hardcoded from R1 audit so badges show before ESPN loads.
+   upsetTeam is a MOVING TARGET — update each round if a new
+   upset surpasses +7 seed diff.
+─────────────────────────────────────────────────────────── */
+var SIDE_POT_MANUAL = {
+  lossTeam:   'Prairie View/Lehigh', /* Florida 114-55, lost by 59pts — CONFIRMED */
+  upsetTeam:  'High Point',          /* beat Wisconsin +7 seed diff — CURRENT LEADER (moving target) */
+  upsetDiff:  7,                     /* known diff — override ESPN if ESPN finds < this */
+  seed15Team: 'Siena'                /* lost to Duke 71-65, 6pt margin — CONFIRMED */
+};
+
 TEAMS.forEach(function(t) {
   if (CONFIRMED_LOST.indexOf(t.name) > -1)    t.status = 'lost';
   if (CONFIRMED_R1.indexOf(t.name) > -1)      { t.status = 'won'; t.wonR1 = true; }
@@ -520,6 +528,9 @@ TEAMS.forEach(function(t) {
 function getR1Winners() { return TEAMS.filter(function(t){ return t.r1eligible && t.wonR1; }); }
 function getR1PerTeam() { var w=getR1Winners().length; return w>0?Math.ceil(POTS.r1/w):0; }
 
+/* Currency formatter — whole dollars, no cents */
+function c(n){ return Math.round(Number(n)).toLocaleString('en-US'); }
+
 function computeS16PerTeam() {
   var eligible = TEAMS.filter(function(t){ return t.seed>=4 && t.status!=='lost'; });
   var projected = Math.min(eligible.length, 16);
@@ -531,9 +542,132 @@ function teamEarned(t) {
   return 0;
 }
 
+/* ─── SIDE POT COMPUTATION ────────────────────────────────────
+   Single source of truth used by both renderPayouts() and ownerEarned().
+
+   BIGGEST LOSS  (R64 only)
+     Largest point-margin defeat. Tie → lowest points scored. Tie → split.
+
+   BIGGEST UPSET (any round)
+     Largest seed differential. Tie → higher seed number wins. Tie → split.
+
+   BEST 15/16
+     Furthest round reached. Tie (same round, both lost after R1) →
+     smallest loss margin IN that round. Tie → split.
+     If nobody won R1: smallest margin in R1. Tie → split.
+─────────────────────────────────────────────────────────────── */
+var _sidePotCache = null;
+function computeSidePots() {
+  if(_sidePotCache) return _sidePotCache;
+  var roundOrder = {R64:1,R32:2,S16:3,E8:4,F4:5,NCG:6};
+  var r64Games   = completedGames.filter(function(g){return g.round==='R64';});
+  var r64Done    = r64Games.length >= 32;
+
+  /* ── BIGGEST LOSS ──────────────────────────────────────── */
+  var blossMargin=-1, blossMinPts=Infinity, blossEntries=[];
+  r64Games.forEach(function(g){
+    var w=g.t1.winner?g.t1:g.t2, l=g.t1.winner?g.t2:g.t1;
+    if(!w||!l) return;
+    var m=w.score-l.score, pts=l.score;
+    if(m>blossMargin){
+      blossMargin=m; blossMinPts=pts; blossEntries=[{loser:l,margin:m,pts:pts}];
+    } else if(m===blossMargin){
+      if(pts<blossMinPts){ blossMinPts=pts; blossEntries=[{loser:l,margin:m,pts:pts}]; }
+      else if(pts===blossMinPts){ blossEntries.push({loser:l,margin:m,pts:pts}); } /* split */
+    }
+  });
+  var lossWinners=[], lossTeams=[];
+  blossEntries.forEach(function(e){ if(e.loser.matched){ lossWinners.push(e.loser.matched.owner); lossTeams.push(e.loser.matched.name); }});
+
+  /* ── BIGGEST UPSET ─────────────────────────────────────── */
+  var bupsetDiff=-1, bupsetTopSeed=-1, bupsetEntries=[];
+  completedGames.forEach(function(g){
+    var w=g.t1.winner?g.t1:g.t2, l=g.t1.winner?g.t2:g.t1;
+    if(!w||!l||!w.matched||!l.matched) return;
+    var diff=w.matched.seed-l.matched.seed;
+    if(diff<=0) return;
+    var wseed=w.matched.seed;
+    if(diff>bupsetDiff){
+      bupsetDiff=diff; bupsetTopSeed=wseed; bupsetEntries=[{winner:w,loser:l,diff:diff,round:g.round}];
+    } else if(diff===bupsetDiff){
+      if(wseed>bupsetTopSeed){ bupsetTopSeed=wseed; bupsetEntries=[{winner:w,loser:l,diff:diff,round:g.round}]; }
+      else if(wseed===bupsetTopSeed){ bupsetEntries.push({winner:w,loser:l,diff:diff,round:g.round}); } /* split */
+    }
+  });
+  var upsetWinners=[], upsetTeams=[];
+  bupsetEntries.forEach(function(e){ if(e.winner.matched){ upsetWinners.push(e.winner.matched.owner); upsetTeams.push(e.winner.matched.name); }});
+
+  /* ── BEST 15/16 ────────────────────────────────────────── */
+  var alive1516  = TEAMS.filter(function(t){return (t.seed===15||t.seed===16)&&t.status!=='lost';});
+  var all1516Done= alive1516.length===0;
+  var seed15Winners=[], seed15Teams=[], seed15Data=null;
+  if(all1516Done){
+    /* Build loss record for every 15/16 team */
+    var records=[];
+    completedGames.forEach(function(g){
+      var w=g.t1.winner?g.t1:g.t2, l=g.t1.winner?g.t2:g.t1;
+      if(!l||!l.matched) return;
+      if(l.matched.seed!==15&&l.matched.seed!==16) return;
+      records.push({team:l.matched,round:g.round,roundNum:roundOrder[g.round]||0,margin:w.score-l.score});
+    });
+    if(records.length){
+      var bestRound=Math.max.apply(null,records.map(function(r){return r.roundNum;}));
+      var topRecords=records.filter(function(r){return r.roundNum===bestRound;});
+      if(topRecords.length===1){
+        seed15Data=topRecords[0]; seed15Winners=[topRecords[0].team.owner]; seed15Teams=[topRecords[0].team.name];
+      } else {
+        /* Same round — tiebreaker: smallest loss margin IN that specific round */
+        var bestMargin=Math.min.apply(null,topRecords.map(function(r){return r.margin;}));
+        var finalists=topRecords.filter(function(r){return r.margin===bestMargin;});
+        seed15Data=finalists[0];
+        finalists.forEach(function(r){ seed15Winners.push(r.team.owner); seed15Teams.push(r.team.name); });
+      }
+    }
+  }
+
+  /* ── CONFIRMED overrides: loss + seed15 are done — always enforce, ignore ESPN ── */
+  if(SIDE_POT_MANUAL.lossTeam){
+    var lt=TEAMS.find(function(t){return t.name===SIDE_POT_MANUAL.lossTeam;});
+    if(lt){ lossTeams=[lt.name]; lossWinners=[lt.owner]; }
+  }
+  if(SIDE_POT_MANUAL.seed15Team){
+    var st=TEAMS.find(function(t){return t.name===SIDE_POT_MANUAL.seed15Team;});
+    if(st){ seed15Teams=[st.name]; seed15Winners=[st.owner]; }
+  }
+  /* ── Upset: moving target — manual is floor, ESPN wins if it finds a bigger upset ── */
+  if(SIDE_POT_MANUAL.upsetTeam){
+    var manDiff=SIDE_POT_MANUAL.upsetDiff||0;
+    if(manDiff>=bupsetDiff){
+      var ut=TEAMS.find(function(t){return t.name===SIDE_POT_MANUAL.upsetTeam;});
+      if(ut){ upsetTeams=[ut.name]; upsetWinners=[ut.owner]; bupsetDiff=manDiff; }
+    }
+  }
+
+  var sp = {
+    /* winner arrays (length > 1 = split pot) */
+    lossWinners:lossWinners,   lossTeams:lossTeams,   lossConfirmed:lossWinners.length>0,
+    upsetWinners:upsetWinners, upsetTeams:upsetTeams,
+    seed15Winners:seed15Winners, seed15Teams:seed15Teams, seed15Confirmed:seed15Winners.length>0,
+
+    /* raw data for payouts display */
+    blossEntries:blossEntries,  blossMargin:blossMargin,
+    bupsetEntries:bupsetEntries, bupsetDiff:bupsetDiff,
+    seed15Data:seed15Data,
+
+    alive1516:alive1516, r64Done:r64Done, all1516Done:all1516Done
+  };
+  _sidePotCache=sp;
+  return sp;
+}
+function clearSidePotCache(){ _sidePotCache=null; }
+
 function ownerEarned(oid) {
   var total=0, r1pp=getR1PerTeam();
   TEAMS.forEach(function(t){ if(t.owner===oid && t.r1eligible && t.wonR1) total+=r1pp; });
+  var sp=computeSidePots();
+  if(sp.lossConfirmed   && sp.lossWinners.indexOf(oid)>-1)  total += POTS.loss/sp.lossWinners.length;
+  if(sp.upsetWinners.length && sp.upsetWinners.indexOf(oid)>-1) total += POTS.upset/sp.upsetWinners.length;
+  if(sp.seed15Confirmed && sp.seed15Winners.indexOf(oid)>-1) total += POTS.seed15/sp.seed15Winners.length;
   return total;
 }
 
@@ -568,13 +702,16 @@ function getGameRound(ev, teams) {
   var comp=ev.competitions&&ev.competitions[0];
   if(comp&&comp.notes&&comp.notes.length){
     var hl=(comp.notes[0].headline||'').toLowerCase();
-    if(hl.indexOf('second')>-1||hl.indexOf('2nd')>-1||hl.indexOf('round of 32')>-1){
+    /* IMPORTANT: check specific rounds BEFORE generic "championship" keyword,
+       because ESPN prepends "NCAA ... Championship -" to every round headline */
+    if(hl.indexOf('first round')>-1||hl.indexOf('1st round')>-1||hl.indexOf('round of 64')>-1) return 'R64';
+    if(hl.indexOf('second round')>-1||hl.indexOf('2nd round')>-1||hl.indexOf('round of 32')>-1){
       var d=toETDate(ev.date||''); if(d) knownR32Dates[d]=true; return 'R32';
     }
     if(hl.indexOf('sweet')>-1)  return 'S16';
     if(hl.indexOf('elite')>-1)  return 'E8';
     if(hl.indexOf('final four')>-1||hl.indexOf('semifinal')>-1) return 'F4';
-    if(hl.indexOf('national')>-1||hl.indexOf('championship')>-1) return 'NCG';
+    if(hl.indexOf('national championship')>-1||hl.indexOf('championship game')>-1) return 'NCG';
   }
   if(teams){
     var matched=teams.filter(function(t){return t.matched;});
@@ -587,7 +724,7 @@ function getGameRound(ev, teams) {
 
 function processESPN(data) {
   if(!data||!data.events) return;
-  liveGames=[]; completedGames=[]; upcomingGames=[];
+  liveGames=[]; completedGames=[]; upcomingGames=[]; clearSidePotCache();
 
   data.events.forEach(function(ev){
     if(!ev.competitions||!ev.competitions[0]) return;
@@ -712,9 +849,19 @@ function renderTeams() {
     var o       = OWNERS[oid];
     var earned  = ownerEarned(oid);
     var net     = ownerNet(oid);
-    var netStr  = (net>=0?'+$':'-$')+Math.abs(net).toLocaleString();
+    var netStr  = (net>=0?'+$':'-$')+c(Math.abs(net));
     var netCls  = net>=0?'ocard-net pos':'ocard-net';
     var hasLive = TEAMS.some(function(t){ return t.owner===oid && t.status==='live'; });
+
+    /* Split earned into team R1 earnings vs side bet earnings */
+    var r1pp = getR1PerTeam();
+    var teamEarnedAmt = 0;
+    TEAMS.forEach(function(t){ if(t.owner===oid && t.r1eligible && t.wonR1) teamEarnedAmt += r1pp; });
+    var spEarn = computeSidePots();
+    var sideBetAmt = 0;
+    if(spEarn.lossConfirmed    && spEarn.lossWinners.indexOf(oid)>-1)   sideBetAmt += POTS.loss/spEarn.lossWinners.length;
+    if(spEarn.upsetWinners.length && spEarn.upsetWinners.indexOf(oid)>-1) sideBetAmt += POTS.upset/spEarn.upsetWinners.length;
+    if(spEarn.seed15Confirmed  && spEarn.seed15Winners.indexOf(oid)>-1) sideBetAmt += POTS.seed15/spEarn.seed15Winners.length;
 
     /* Sort teams: live → earned → alive → lost */
     var myTeams = TEAMS.filter(function(t){ return t.owner===oid; })
@@ -730,13 +877,19 @@ function renderTeams() {
 
     var aliveCount = myTeams.filter(function(t){ return t.status!=='lost'; }).length;
 
+    var sp = computeSidePots();
+
     var chips = myTeams.map(function(t){
-      var isLive   = t.status==='live';
-      var isLost   = t.status==='lost';
-      var hasEarned= t.wonR1 && t.r1eligible;
-      var te       = teamEarned(t);
-      var logoSrc  = t.logo||LOGOS[t.name]||'';
-      var chipCls  = 'tchip'+(isLive?' live':hasEarned?' earned':isLost?' lost':'');
+      var isLive    = t.status==='live';
+      var isLost    = t.status==='lost';
+      var hasEarned = t.wonR1 && t.r1eligible;
+      var isBigLoss    = sp.lossTeams   && sp.lossTeams.indexOf(t.name)>-1;
+      var isUpsetLeader= sp.upsetTeams  && sp.upsetTeams.indexOf(t.name)>-1;
+      var is1516Win    = sp.seed15Teams && sp.seed15Teams.indexOf(t.name)>-1;
+      var te        = teamEarned(t);
+      var logoSrc   = t.logo||LOGOS[t.name]||'';
+      var hasSidePot= isBigLoss||isUpsetLeader||is1516Win;
+      var chipCls   = 'tchip'+(isLive?' live':hasEarned?' earned':isLost?' lost':'')+(hasSidePot?' sp-winner':'');
 
       var nm = t.name
         .replace('Saint ','St. ')
@@ -748,8 +901,11 @@ function renderTeams() {
         ? '<img src="'+logoSrc+'" class="tchip-logo" onerror="this.style.display=\'none\'">'
         : '<div class="tchip-logo-fb">'+t.seed+'</div>';
 
-      var earnLine = (te>0 && !isLive) ? '<div class="tchip-earn">+$'+Math.round(te)+' R1</div>' : '';
-      var liveDot  = isLive ? '<div class="tchip-live-dot"></div>' : '';
+      var earnLine    = te>0 ? '<div class="tchip-earn">+$'+c(te)+' R1</div>' : '';
+      var upsetBadge  = isUpsetLeader ? '<div class="tchip-upset-badge">⚡ UPSET LEADER</div>' : '';
+      var lossBadge   = isBigLoss     ? '<div class="tchip-loss-badge">📉 BIGGEST LOSS</div>' : '';
+      var seed15Badge = is1516Win     ? '<div class="tchip-seed15-badge">🏅 BEST 15/16</div>' : '';
+      var liveDot     = isLive ? '<div class="tchip-live-dot"></div>' : '';
 
       return '<div class="'+chipCls+'">'
         + logoHtml
@@ -757,6 +913,9 @@ function renderTeams() {
           + '<div class="tchip-seed">#'+t.seed+'</div>'
           + '<div class="tchip-name">'+nm+'</div>'
           + earnLine
+          + upsetBadge
+          + lossBadge
+          + seed15Badge
         + '</div>'
         + liveDot
       + '</div>';
@@ -764,17 +923,21 @@ function renderTeams() {
 
     return '<div class="ocard'+(hasLive?' has-live':'')+'" style="--oc:'+o.color+'">'
       + '<div class="ocard-hdr">'
-        + '<div class="ocard-left">'
-          + '<div class="ocard-name">'+o.name+'</div>'
-          + '<div class="ocard-stats">'
-            + '<b>$'+o.paid.toLocaleString()+'</b> spent'
-            + (earned>0?' · <b style="color:#4ade80">+$'+earned.toLocaleString()+'</b> earned':'')
-            + ' · <b>'+aliveCount+'</b> alive'
+        + '<div class="ocard-row1">'
+          + '<div style="display:flex;align-items:center">'
+            + '<div class="ocard-name">'+o.name+'</div>'
+            + '<span class="ocard-alive-pill">'+aliveCount+' alive</span>'
           + '</div>'
-        + '</div>'
-        + '<div class="ocard-right">'
           + '<div class="'+netCls+'">'+netStr+'</div>'
-          + '<div class="ocard-netlabel">Net P&L</div>'
+        + '</div>'
+        + '<div class="ocard-row2">'
+          + '<div class="ocard-stats">'
+            + (teamEarnedAmt>0?'<b style="color:#4ade80">+$'+c(teamEarnedAmt)+'</b> teams':'')
+            + (sideBetAmt>0?(teamEarnedAmt>0?' · ':'')+'<b style="color:#a78bfa">+$'+c(sideBetAmt)+'</b> side bets':'')
+            + ((teamEarnedAmt>0||sideBetAmt>0)?' · ':'')
+            + '<b style="color:#ef4444">-$'+c(o.paid)+'</b> spent'
+          + '</div>'
+          + '<div class="ocard-netlabel" style="color:'+o.color+'">NET</div>'
         + '</div>'
       + '</div>'
       + '<div class="ocard-teams">'+chips+'</div>'
@@ -794,17 +957,7 @@ function renderGames() {
   var r1pp  = getR1PerTeam();
   var s16pp = computeS16PerTeam();
 
-  function earnBadges(t, round, isDone) {
-    if(isDone || !t || !t.matched) return '';
-    var tm = t.matched;
-    var out = '';
-    if(round==='R64' && tm.r1eligible && !tm.wonR1 && r1pp>0)
-      out += '<div class="mcard-earn r1">+$'+r1pp+' R1</div>';
-    if(round==='R32' && tm.seed>=4 && s16pp>0)
-      out += '<div class="mcard-earn s16">+$'+s16pp+' S16</div>';
-    return out;
-  }
-
+  /* Build one team side column */
   function teamCol(t, round, isDone, side) {
     var tm = t.matched;
     var isWinner = isDone && t.winner;
@@ -817,18 +970,49 @@ function renderGames() {
     var nm = tm ? tm.name : (t.espnName||'TBD');
     if(nm.length>13) nm = nm.replace('Saint ','St. ').replace('Northern ','N. ').replace(' State',' St.');
     var ownHtml = tm ? ownerTag(tm.owner,8) : '';
-    var earn = earnBadges(t, round, isDone);
 
-    return '<div class="mcard-team '+side+'">'
+    /* earn badge inline — only for upcoming/live */
+    var earn = '';
+    if(!isDone && tm) {
+      if(round==='R64' && tm.r1eligible && !tm.wonR1 && r1pp>0)
+        earn = '<div class="mcard-earn r1">+$'+c(r1pp)+' R1</div>';
+      if(round==='R32' && tm.seed>=4 && s16pp>0)
+        earn = '<div class="mcard-earn s16">+$'+c(s16pp)+' S16</div>';
+    }
+
+    return '<div class="mcard-side'+(side==='right'?' right':'')+'">'
       + logoHtml
-      + '<div class="mcard-tinfo">'
+      + '<div class="mcard-info">'
         + '<div class="'+nameCls+'">'+nm+'</div>'
-        + '<div class="mcard-tags">'
+        + '<div class="mcard-meta">'
           + (tm?'<span class="mcard-seed">#'+tm.seed+'</span>':'')
           + ownHtml
         + '</div>'
         + earn
       + '</div>'
+    + '</div>';
+  }
+
+  /* Center column */
+  function midLive(t1, t2) {
+    return '<div class="mcard-mid">'
+      + '<div class="mcard-scores"><span class="mcard-sc">'+t1.score+'</span>'
+      + '<span class="mcard-sc-sep">–</span>'
+      + '<span class="mcard-sc">'+t2.score+'</span></div>'
+      + '<div class="mcard-status live">LIVE</div>'
+    + '</div>';
+  }
+  function midVs() {
+    return '<div class="mcard-mid"><div class="mcard-vs">VS</div></div>';
+  }
+  function midFinal(t1, t2) {
+    return '<div class="mcard-mid">'
+      + '<div class="mcard-scores">'
+      + '<span class="mcard-sc'+(t1.winner?' win':' lose')+'">'+t1.score+'</span>'
+      + '<span class="mcard-sc-sep">–</span>'
+      + '<span class="mcard-sc'+(t2.winner?' win':' lose')+'">'+t2.score+'</span>'
+      + '</div>'
+      + '<div class="mcard-status">FINAL</div>'
     + '</div>';
   }
 
@@ -839,12 +1023,11 @@ function renderGames() {
       var t1=g.t1, t2=g.t2;
       html += '<div class="mcard live">'
         + '<div class="mcard-top"><div class="mcard-top-left"><span class="live-dot"></span><span class="mcard-round">'+g.round+'</span></div><div class="mcard-top-right">'+g.detail+'</div></div>'
-        + '<div class="mcard-teams">'
+        + '<div class="mcard-body">'
           + teamCol(t1,g.round,false,'left')
-          + '<div class="mcard-center"><div class="mcard-score-wrap"><span class="mcard-score">'+t1.score+'</span><span class="mcard-dash">–</span><span class="mcard-score">'+t2.score+'</span></div><div class="mcard-time live-txt">LIVE</div></div>'
+          + midLive(t1,t2)
           + teamCol(t2,g.round,false,'right')
         + '</div>'
-        + potBar(t1,t2,g.round,false)
       + '</div>';
     });
     html += '</div></div>';
@@ -862,15 +1045,13 @@ function renderGames() {
       html += '<div class="games-section"><div class="games-sec-hdr">'+lbl+'</div><div class="game-list">';
       byDate[d].forEach(function(g){
         var t1=g.t1,t2=g.t2;
-        var timeStr=g.detail||'TBD';
         html += '<div class="mcard">'
-          + '<div class="mcard-top"><div class="mcard-top-left"><span class="mcard-round">'+g.round+'</span></div><div class="mcard-top-right">'+timeStr+'</div></div>'
-          + '<div class="mcard-teams">'
+          + '<div class="mcard-top"><div class="mcard-top-left"><span class="mcard-round">'+g.round+'</span></div><div class="mcard-top-right">'+(g.detail||'TBD')+'</div></div>'
+          + '<div class="mcard-body">'
             + teamCol(t1,g.round,false,'left')
-            + '<div class="mcard-center"><div class="mcard-vs">VS</div></div>'
+            + midVs()
             + teamCol(t2,g.round,false,'right')
           + '</div>'
-          + potBar(t1,t2,g.round,false)
         + '</div>';
       });
       html += '</div></div>';
@@ -886,15 +1067,19 @@ function renderGames() {
     });
     Object.keys(cByDate).sort().reverse().forEach(function(d){
       var lbl = d==='unknown'?'COMPLETED':dateSectionLabel(d);
+      var w1; /* winner name for header */
       html += '<div class="games-section"><div class="games-sec-hdr">'+lbl+' · FINAL</div><div class="game-list">';
       cByDate[d].forEach(function(g){
         var t1=g.t1,t2=g.t2;
-        var w=t1.winner?t1:t2, l=t1.winner?t2:t1;
+        var w=t1.winner?t1:t2;
         html += '<div class="mcard final">'
-          + '<div class="mcard-top"><div class="mcard-top-left"><span class="mcard-round">'+g.round+' · FINAL</span></div><div class="mcard-top-right" style="color:#22c55e;font-weight:700">'+(w.matched?w.matched.name:'')+'</div></div>'
-          + '<div class="mcard-teams">'
+          + '<div class="mcard-top">'
+            + '<div class="mcard-top-left"><span class="mcard-round">'+g.round+'</span></div>'
+            + '<div class="mcard-top-right" style="color:#22c55e;font-weight:700">'+(w.matched?w.matched.name:'')+'</div>'
+          + '</div>'
+          + '<div class="mcard-body">'
             + teamCol(t1,g.round,true,'left')
-            + '<div class="mcard-center"><div class="mcard-score-wrap"><span class="mcard-score '+(t1.winner?'winner':'loser')+'">'+t1.score+'</span><span class="mcard-dash">–</span><span class="mcard-score '+(t2.winner?'winner':'loser')+'">'+t2.score+'</span></div><div class="mcard-time">FINAL</div></div>'
+            + midFinal(t1,t2)
             + teamCol(t2,g.round,true,'right')
           + '</div>'
         + '</div>';
@@ -905,24 +1090,6 @@ function renderGames() {
 
   if(!html) html='<div style="text-align:center;color:#2e2e44;font-size:12px;padding:40px 0;font-style:italic">Loading games…</div>';
   el.innerHTML = html;
-}
-
-function potBar(t1, t2, round, isDone) {
-  if(isDone) return '';
-  var r1pp=getR1PerTeam(), s16pp=computeS16PerTeam();
-  var items=[];
-
-  [t1,t2].forEach(function(t){
-    if(!t.matched) return;
-    var tm=t.matched, o=OWNERS[tm.owner];
-    if(round==='R64' && tm.r1eligible && !tm.wonR1 && r1pp>0)
-      items.push('<div class="mcard-pot-item r1-item">'+logoImg(tm,14,3)+'<span style="background:'+o.color+';color:#000;font-size:7px;font-weight:700;padding:1px 4px;border-radius:2px">'+o.name+'</span><span>+$'+r1pp+' R1</span></div>');
-    if(round==='R32' && tm.seed>=4 && s16pp>0)
-      items.push('<div class="mcard-pot-item s16-item">'+logoImg(tm,14,3)+'<span style="background:'+o.color+';color:#000;font-size:7px;font-weight:700;padding:1px 4px;border-radius:2px">'+o.name+'</span><span>+$'+s16pp+' S16</span></div>');
-  });
-
-  if(!items.length) return '';
-  return '<div class="mcard-pot"><span class="mcard-pot-label">At stake</span><div class="mcard-pot-items">'+items.join('')+'</div></div>';
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -940,7 +1107,7 @@ function renderStandings() {
   el.innerHTML = owners.map(function(item,i){
     var oid=item.oid, o=item.o, net=item.net, earned=item.earned;
     var netCls = net>=0?'stand-net pos':'stand-net';
-    var netStr = (net>=0?'+$':'-$')+Math.abs(net).toLocaleString();
+    var netStr = (net>=0?'+$':'-$')+c(Math.abs(net));
 
     var myTeams = TEAMS.filter(function(t){ return t.owner===oid && t.status!=='lost'; })
       .sort(function(a,b){
@@ -949,8 +1116,25 @@ function renderStandings() {
         return a.seed-b.seed;
       });
 
-    var chips = myTeams.map(function(t){
+    var sp = computeSidePots();
+    var ownsLoss  = sp.lossWinners  && sp.lossWinners.indexOf(oid)>-1;
+    var ownsUpset = sp.upsetWinners && sp.upsetWinners.indexOf(oid)>-1;
+    var owns1516  = sp.seed15Winners && sp.seed15Winners.indexOf(oid)>-1;
+
+    /* include lost teams that won a side pot so they still appear in the chip row */
+    var sidePotTeams = TEAMS.filter(function(t){
+      if(t.owner!==oid || t.status!=='lost') return false;
+      return (sp.lossTeams&&sp.lossTeams.indexOf(t.name)>-1)
+          || (sp.upsetTeams&&sp.upsetTeams.indexOf(t.name)>-1)
+          || (sp.seed15Teams&&sp.seed15Teams.indexOf(t.name)>-1);
+    });
+    var allChipTeams = myTeams.concat(sidePotTeams);
+
+    var chips = allChipTeams.map(function(t){
       var isLive=t.status==='live';
+      var isBigLoss  =(sp.lossTeams   && sp.lossTeams.indexOf(t.name)>-1);
+      var isUpsetLead=(sp.upsetTeams  && sp.upsetTeams.indexOf(t.name)>-1);
+      var is1516Win  =(sp.seed15Teams && sp.seed15Teams.indexOf(t.name)>-1);
       var te=teamEarned(t);
       var logoSrc=t.logo||LOGOS[t.name]||'';
       var logoHtml = logoSrc
@@ -960,15 +1144,31 @@ function renderStandings() {
       var nm = t.name.replace('Saint ','St. ').replace('Northern ','N. ');
       if(nm.length>10) nm=nm.substring(0,10)+'…';
       var nameCls = te>0?'stand-chip-name earn':'stand-chip-name';
-      return '<div class="stand-team-chip">'+liveIcon+logoHtml+'<span class="'+nameCls+'">#'+t.seed+' '+nm+'</span></div>';
+      var lossBadge   = isBigLoss   ? '<span style="font-size:7px;font-weight:800;color:#ef4444;margin-left:3px">📉</span>' : '';
+      var upsetBadge  = isUpsetLead ? '<span style="font-size:7px;font-weight:800;color:#f59e0b;margin-left:3px">⚡</span>' : '';
+      var seed15Badge = is1516Win   ? '<span style="font-size:7px;font-weight:800;color:#a78bfa;margin-left:3px">🏅</span>' : '';
+      return '<div class="stand-team-chip">'+liveIcon+logoHtml+'<span class="'+nameCls+'">#'+t.seed+' '+nm+'</span>'+lossBadge+upsetBadge+seed15Badge+'</div>';
     }).join('');
 
+    /* side pot badges on owner card */
+    var lossBadgeCard  = ownsLoss
+      ? '<div class="ocard-loss-badge">📉 Biggest R1 Loss · +$'+c(POTS.loss)+'</div>'
+      : '';
+    var upsetBadgeCard = ownsUpset
+      ? '<div class="ocard-loss-badge" style="color:#f59e0b;background:#1a1000;border-color:rgba(245,158,11,.2)">⚡ Biggest Upset · +$'+c(POTS.upset)+' (leader)</div>'
+      : '';
+    var seed15BadgeCard = owns1516
+      ? '<div class="ocard-loss-badge" style="color:#a78bfa;background:#0e0a1a;border-color:rgba(167,139,250,.2)">🏅 Best 15/16 · +$'+c(POTS.seed15)+'</div>'
+      : '';
+
+    var anyBadge = ownsLoss||ownsUpset||owns1516;
     return '<div class="stand-card" style="--oc:'+o.color+'">'
       + '<div class="stand-rank">#'+(i+1)+'</div>'
       + '<div class="'+netCls+'">'+netStr+'</div>'
       + '<div class="stand-name">'+o.name+'</div>'
-      + '<div class="stand-stats">'
-        + '<b>$'+earned.toLocaleString()+'</b> earned · <b>$'+o.paid.toLocaleString()+'</b> paid'
+      + lossBadgeCard + upsetBadgeCard + seed15BadgeCard
+      + '<div class="stand-stats" style="margin-top:'+(anyBadge?'5':'')+'px">'
+        + '<b>$'+c(earned)+'</b> earned · <b>$'+c(o.paid)+'</b> paid'
         + (myTeams.length?' · <b>'+myTeams.length+'</b> alive':'')
       + '</div>'
       + '<div class="stand-teams">'+chips+'</div>'
@@ -993,95 +1193,153 @@ function renderPayouts() {
   /* R1 Winners */
   var r1Html = r1w.length
     ? r1w.map(function(t){
-        return '<div class="pwinner">'+pLogoImg(t)+'<span class="pw-name">'+t.name+'</span>'+ownerTag(t.owner,8)+'<span class="pw-amt">+$'+r1pp+'</span></div>';
+        return '<div class="pwinner">'+pLogoImg(t)+'<span class="pw-name">'+t.name+'</span>'+ownerTag(t.owner,8)+'<span class="pw-amt">+$'+c(r1pp)+'</span></div>';
       }).join('')
     : '<div class="pcard-tbd">No winners yet</div>';
 
   var html =
     '<div class="pcard">'
-    + '<div class="pcard-hdr"><div><div class="pcard-name">Round of 64 Winners</div><div class="pcard-pct">10% of pot · seeds 8–16 only · split equally</div></div><div class="pcard-amt">$'+POTS.r1.toLocaleString()+'</div></div>'
-    + '<div class="pcard-note">$'+r1pp+' per winner · '+r1w.length+' confirmed</div>'
+    + '<div class="pcard-hdr"><div><div class="pcard-name">Round of 64 Winners</div><div class="pcard-pct">10% of pot · seeds 8–16 only · split equally</div></div><div class="pcard-amt">$'+c(POTS.r1)+'</div></div>'
+    + '<div class="pcard-note">$'+c(r1pp)+' per winner · '+r1w.length+' confirmed</div>'
     + '<div class="pcard-winners">'+r1Html+'</div>'
     + '</div>'
 
     + '<div class="pcard">'
-    + '<div class="pcard-hdr"><div><div class="pcard-name">Sweet 16</div><div class="pcard-pct">23% of pot · seeds 4–16 only · split equally</div></div><div class="pcard-amt">$'+Math.round(POTS.s16)+'</div></div>'
-    + '<div class="pcard-note">~$'+computeS16PerTeam()+'/team if 16 advance · '+s16Eligible.length+' eligible still alive</div>'
+    + '<div class="pcard-hdr"><div><div class="pcard-name">Sweet 16</div><div class="pcard-pct">23% of pot · seeds 4–16 only · split equally</div></div><div class="pcard-amt">$'+c(POTS.s16)+'</div></div>'
+    + '<div class="pcard-note">~$'+c(computeS16PerTeam())+'/team if 16 advance · '+s16Eligible.length+' eligible still alive</div>'
     + '<div class="pcard-tbd">Winners determined after Round of 32</div>'
     + '</div>'
 
     + '<div class="pcard">'
-    + '<div class="pcard-hdr"><div><div class="pcard-name">Elite 8</div><div class="pcard-pct">10% of pot · seeds 1–3 only · split equally</div></div><div class="pcard-amt">$'+Math.round(POTS.e8)+'</div></div>'
+    + '<div class="pcard-hdr"><div><div class="pcard-name">Elite 8</div><div class="pcard-pct">10% of pot · seeds 1–3 only · split equally</div></div><div class="pcard-amt">$'+c(POTS.e8)+'</div></div>'
     + '<div class="pcard-note">'+TEAMS.filter(function(t){return t.top3&&t.status!=='lost';}).length+' seeds 1–3 still alive</div>'
     + '<div class="pcard-tbd">Winners determined after Sweet 16</div>'
     + '</div>'
 
     + '<div class="pcard">'
-    + '<div class="pcard-hdr"><div><div class="pcard-name">Final Four</div><div class="pcard-pct">28% of pot · fixed per team</div></div><div class="pcard-amt">$'+Math.round(POTS.f4*4).toLocaleString()+'</div></div>'
-    + '<div class="pcard-note">$'+Math.round(POTS.f4)+' per team — fixed, no dilution</div>'
+    + '<div class="pcard-hdr"><div><div class="pcard-name">Final Four</div><div class="pcard-pct">28% of pot · fixed per team</div></div><div class="pcard-amt">$'+c(POTS.f4*4)+'</div></div>'
+    + '<div class="pcard-note">$'+c(POTS.f4)+' per team — fixed, no dilution</div>'
     + '</div>'
 
     + '<div class="pcard">'
-    + '<div class="pcard-hdr"><div><div class="pcard-name">Championship Game</div><div class="pcard-pct">8% of pot · both finalists</div></div><div class="pcard-amt">$'+Math.round(POTS.finals*2).toLocaleString()+'</div></div>'
-    + '<div class="pcard-note">$'+Math.round(POTS.finals)+' per finalist</div>'
+    + '<div class="pcard-hdr"><div><div class="pcard-name">Championship Game</div><div class="pcard-pct">8% of pot · both finalists</div></div><div class="pcard-amt">$'+c(POTS.finals*2)+'</div></div>'
+    + '<div class="pcard-note">$'+c(POTS.finals)+' per finalist</div>'
     + '</div>'
 
     + '<div class="pcard">'
-    + '<div class="pcard-hdr"><div><div class="pcard-name">National Champion</div><div class="pcard-pct">9% of pot · winner takes all</div></div><div class="pcard-amt">$'+Math.round(POTS.champ).toLocaleString()+'</div></div>'
+    + '<div class="pcard-hdr"><div><div class="pcard-name">National Champion</div><div class="pcard-pct">9% of pot · winner takes all</div></div><div class="pcard-amt">$'+c(POTS.champ)+'</div></div>'
     + '</div>';
 
-  /* Side pots */
-  var r64Done = completedGames.filter(function(g){ return g.round==='R64'; });
+  /* Side pots — use shared computeSidePots() */
+  var sp = computeSidePots();
 
-  /* Biggest Loss leader */
-  var bloss=null, blossMargin=-1;
-  r64Done.forEach(function(g){
-    var winner=g.t1.winner?g.t1:g.t2, loser=g.t1.winner?g.t2:g.t1;
-    if(!winner||!loser) return;
-    var m=winner.score-loser.score;
-    if(m>blossMargin||(m===blossMargin&&loser.score<(bloss?bloss.loser.score:Infinity))){
-      blossMargin=m; bloss={winner:winner,loser:loser,margin:m};
-    }
-  });
-  var blossHtml='<div class="pcard-tbd">Determined after all R64 games complete</div>';
-  if(bloss){ var bt=bloss.loser.matched; blossHtml='<div class="pcard-leader">Current leader: <b style="color:#c4c4dc">'+(bt?bt.name:bloss.loser.espnName||'?')+'</b> '+(bt?ownerTag(bt.owner,8):'')+'<span style="color:#ef4444;font-weight:700"> — lost by '+bloss.margin+' pts</span></div>'; }
+  function dn(name){ return name==='Prairie View/Lehigh'?'Prairie View':name; } /* display name */
 
-  /* Biggest Upset leader */
-  var bupset=null,bupsetDiff=-1;
-  r64Done.forEach(function(g){
-    var winner=g.t1.winner?g.t1:g.t2, loser=g.t1.winner?g.t2:g.t1;
-    if(!winner||!loser||!winner.matched||!loser.matched) return;
-    var diff=winner.matched.seed-loser.matched.seed;
-    if(diff<=0) return;
-    if(diff>bupsetDiff||(diff===bupsetDiff&&winner.matched.seed>(bupset?bupset.winner.matched.seed:0))){
-      bupsetDiff=diff; bupset={winner:winner,loser:loser,diff:diff};
-    }
-  });
-  var bupsetHtml='<div class="pcard-tbd">Largest seed differential — any round</div>';
-  if(bupset){ var bwt=bupset.winner.matched; bupsetHtml='<div class="pcard-leader">Current leader: <b style="color:#c4c4dc">'+(bwt?bwt.seed+' '+bwt.name:'?')+'</b> '+ownerTag(bwt.owner,8)+'<span style="color:#22c55e;font-weight:700"> — +'+bupset.diff+' seed diff</span></div>'; }
-
-  /* Best 15/16 */
-  var alive1516=TEAMS.filter(function(t){return (t.seed===15||t.seed===16)&&t.status!=='lost';});
-  var best1516Html='';
-  if(alive1516.length){
-    best1516Html='<div class="pcard-leader">Still alive: '+alive1516.map(function(t){return '<b style="color:#22c55e">#'+t.seed+' '+t.name+'</b> '+ownerTag(t.owner,8);}).join(' · ')+'</div>';
-  } else {
-    var b1516=null,b1516m=Infinity;
-    r64Done.forEach(function(g){
-      var winner=g.t1.winner?g.t1:g.t2,loser=g.t1.winner?g.t2:g.t1;
-      if(!loser||!loser.matched) return;
-      if(loser.matched.seed!==15&&loser.matched.seed!==16) return;
-      var m=winner?(winner.score-loser.score):999;
-      if(m<b1516m||(m===b1516m&&loser.matched.seed>(b1516?b1516.loser.matched.seed:0))){b1516m=m;b1516={loser:loser,margin:m};}
-    });
-    if(b1516){var bt2=b1516.loser.matched;best1516Html='<div class="pcard-leader">Current leader: <b style="color:#c4c4dc">#'+bt2.seed+' '+bt2.name+'</b> '+ownerTag(bt2.owner,8)+'<span style="color:#c4c4dc;font-weight:700"> — lost by '+b1516.margin+' pts</span></div>';}
-    else best1516Html='<div class="pcard-tbd">Loading…</div>';
+  function sidePotWinnerHtml(teams, owners, amt, extra) {
+    if(!teams.length) return '';
+    var isSplit=teams.length>1;
+    var splitAmt=c(amt/teams.length);
+    return '<div class="pcard-leader">'
+      +(isSplit?'<b style="color:#f59e0b">Split pot</b> — ':'<b style="color:#22c55e">Winner:</b> ')
+      +teams.map(function(nm,i){
+        return '<b style="color:#c4c4dc">'+dn(nm)+'</b> '+ownerTag(owners[i],8)+(isSplit?' ($'+splitAmt+')':'');
+      }).join(' & ')
+      +(extra?' <span style="color:#5a5a7a">— '+extra+'</span>':'')
+      +'</div>';
   }
 
+  function tblOwner(oid){
+    var o=OWNERS[oid]; if(!o) return '';
+    return '<span class="sp-owner" style="background:'+o.color+'">'+o.name+'</span>';
+  }
+
+  /* ── BIGGEST LOSS ─────────────────────────────────── */
+  var blossWinner;
+  if(sp.lossConfirmed){
+    blossWinner=sidePotWinnerHtml(sp.lossTeams,sp.lossWinners,POTS.loss,'Florida 114–55 · lost by 59 pts');
+  } else {
+    blossWinner='<div class="pcard-tbd">Determined after all R64 games complete</div>';
+  }
+  var blossDropdown = '<details class="pcard-details"><summary></summary>'
+    +'<div class="pcard-detail-body">'
+    +'<table class="pcard-tbl"><thead><tr><th>Loser</th><th>Owner</th><th>Score</th><th>Margin</th></tr></thead><tbody>'
+    +'<tr class="sp-win"><td>Prairie View</td><td>'+tblOwner('stark')+'</td><td>114–55</td><td class="sp-l sp-margin">59</td></tr>'
+    +'<tr><td>Penn</td><td>'+tblOwner('stark')+'</td><td>105–70</td><td class="sp-margin">35</td></tr>'
+    +'<tr><td>Tennessee St.</td><td>'+tblOwner('topper')+'</td><td>108–74</td><td class="sp-margin">34</td></tr>'
+    +'<tr><td>Long Island</td><td>'+tblOwner('topper')+'</td><td>92–58</td><td class="sp-margin">34</td></tr>'
+    +'<tr><td>Queens</td><td>'+tblOwner('topper')+'</td><td>104–71</td><td class="sp-margin">33</td></tr>'
+    +'<tr><td>Idaho</td><td>'+tblOwner('topper')+'</td><td>78–47</td><td class="sp-margin">31</td></tr>'
+    +'<tr><td>Georgia</td><td>'+tblOwner('curt')+'</td><td>102–77</td><td class="sp-margin">25</td></tr>'
+    +'<tr><td>UMBC/Howard</td><td>'+tblOwner('topper')+'</td><td>101–80</td><td class="sp-margin">21</td></tr>'
+    +'<tr><td>Hofstra</td><td>'+tblOwner('curt')+'</td><td>87–69</td><td class="sp-margin">18</td></tr>'
+    +'<tr><td>Missouri</td><td>'+tblOwner('curt')+'</td><td>80–66</td><td class="sp-margin">14</td></tr>'
+    +'<tr><td>Saint Mary\'s</td><td>'+tblOwner('topper')+'</td><td>63–50</td><td class="sp-margin">13</td></tr>'
+    +'<tr><td>Furman</td><td>'+tblOwner('topper')+'</td><td>82–71</td><td class="sp-margin">11</td></tr>'
+    +'<tr><td>Villanova</td><td>'+tblOwner('topper')+'</td><td>86–76</td><td class="sp-margin">10</td></tr>'
+    +'<tr><td>Kennesaw St.</td><td>'+tblOwner('curt')+'</td><td>73–64</td><td class="sp-margin">9</td></tr>'
+    +'<tr><td>BYU</td><td>'+tblOwner('dolla')+'</td><td>79–71</td><td class="sp-margin">8</td></tr>'
+    +'<tr><td>Siena</td><td>'+tblOwner('stark')+'</td><td>71–65</td><td class="sp-margin">6</td></tr>'
+    +'<tr><td>Clemson</td><td>'+tblOwner('stark')+'</td><td>67–61</td><td class="sp-margin">6</td></tr>'
+    +'<tr><td>Santa Clara</td><td>'+tblOwner('stark')+'</td><td>89–84 OT</td><td class="sp-margin">5</td></tr>'
+    +'<tr><td>UNC</td><td>'+tblOwner('dolla')+'</td><td>82–78 OT</td><td class="sp-margin">4</td></tr>'
+    +'<tr><td>Ohio State</td><td>'+tblOwner('stark')+'</td><td>66–64</td><td class="sp-margin">2</td></tr>'
+    +'<tr><td>Wisconsin</td><td>'+tblOwner('hudd')+'</td><td>83–82</td><td class="sp-margin">1</td></tr>'
+    +'</tbody></table></div></details>';
+
+  /* ── BIGGEST UPSET ────────────────────────────────── */
+  var bupsetWinner;
+  if(sp.upsetTeams.length){
+    var be0=sp.bupsetEntries[0]||{};
+    var rl=be0.round==='R64'?'R1':be0.round||'R1';
+    bupsetWinner=sidePotWinnerHtml(sp.upsetTeams,sp.upsetWinners,POTS.upset,'+'+sp.bupsetDiff+' seed diff ('+rl+')');
+  } else {
+    bupsetWinner='<div class="pcard-tbd">Largest seed differential — any round</div>';
+  }
+  var upsetDropdown = '<details class="pcard-details"><summary></summary>'
+    +'<div class="pcard-detail-body">'
+    +'<table class="pcard-tbl"><thead><tr><th>Winner</th><th>Seed</th><th>Beat</th><th>Seed</th><th>Diff</th><th>Owner</th></tr></thead><tbody>'
+    +'<tr class="sp-win"><td>High Point</td><td>#12</td><td>Wisconsin</td><td>#5</td><td class="sp-w sp-margin">+7</td><td>'+tblOwner('dolla')+'</td></tr>'
+    +'<tr><td>VCU</td><td>#11</td><td>UNC</td><td>#6</td><td class="sp-margin">+5</td><td>'+tblOwner('curt')+'</td></tr>'
+    +'<tr><td>Texas</td><td>#11</td><td>BYU</td><td>#6</td><td class="sp-margin">+5</td><td>'+tblOwner('flan')+'</td></tr>'
+    +'<tr><td>Texas A&M</td><td>#10</td><td>Saint Mary\'s</td><td>#7</td><td class="sp-margin">+3</td><td>'+tblOwner('hudd')+'</td></tr>'
+    +'<tr><td>Iowa</td><td>#9</td><td>Clemson</td><td>#8</td><td class="sp-margin">+1</td><td>'+tblOwner('topper')+'</td></tr>'
+    +'<tr><td>Saint Louis</td><td>#9</td><td>Georgia</td><td>#8</td><td class="sp-margin">+1</td><td>'+tblOwner('hudd')+'</td></tr>'
+    +'<tr><td>TCU</td><td>#9</td><td>Ohio State</td><td>#8</td><td class="sp-margin">+1</td><td>'+tblOwner('topper')+'</td></tr>'
+    +'<tr><td>Utah State</td><td>#9</td><td>Villanova</td><td>#8</td><td class="sp-margin">+1</td><td>'+tblOwner('stark')+'</td></tr>'
+    +'</tbody></table>'
+    +'<div style="font-size:8px;color:#3a3a55;margin-top:7px">⚡ Moving target — updates each round if a larger upset occurs.</div>'
+    +'</div></details>';
+
+  /* ── BEST 15/16 ───────────────────────────────────── */
+  var best1516Winner;
+  if(sp.alive1516.length){
+    best1516Winner='<div class="pcard-leader">Still alive: '+sp.alive1516.map(function(t){return '<b style="color:#22c55e">#'+t.seed+' '+t.name+'</b> '+ownerTag(t.owner,8);}).join(' · ')+'</div>';
+  } else if(sp.seed15Confirmed){
+    var sd=sp.seed15Data;
+    var sdLbl=sd?(sd.round==='R64'?'lost in R1':sd.round==='R32'?'won R1, lost in R2':'reached '+sd.round):'lost in R1';
+    var sdMargin=sd?', lost by '+sd.margin+' pts':'';
+    best1516Winner=sidePotWinnerHtml(sp.seed15Teams,sp.seed15Winners,POTS.seed15,sdLbl+sdMargin);
+  } else {
+    best1516Winner='<div class="pcard-tbd">Loading…</div>';
+  }
+  var seed15Dropdown = '<details class="pcard-details"><summary></summary>'
+    +'<div class="pcard-detail-body">'
+    +'<div style="font-size:8px;color:#3a3a55;margin-bottom:6px">No 15/16 seed won R1 → smallest loss margin wins.</div>'
+    +'<table class="pcard-tbl"><thead><tr><th>Team</th><th>Seed</th><th>Region</th><th>Owner</th><th>Opponent</th><th>Score</th><th>Margin</th></tr></thead><tbody>'
+    +'<tr class="sp-win"><td>Siena</td><td>#16</td><td>East</td><td>'+tblOwner('stark')+'</td><td>Duke</td><td>71–65</td><td class="sp-w sp-margin">6</td></tr>'
+    +'<tr><td>Furman</td><td>#15</td><td>East</td><td>'+tblOwner('topper')+'</td><td>UConn</td><td>82–71</td><td class="sp-margin">11</td></tr>'
+    +'<tr><td>UMBC/Howard</td><td>#16</td><td>Midwest</td><td>'+tblOwner('topper')+'</td><td>Michigan</td><td>101–80</td><td class="sp-margin">21</td></tr>'
+    +'<tr><td>Idaho</td><td>#15</td><td>South</td><td>'+tblOwner('topper')+'</td><td>Houston</td><td>78–47</td><td class="sp-margin">31</td></tr>'
+    +'<tr><td>Queens</td><td>#15</td><td>West</td><td>'+tblOwner('topper')+'</td><td>Purdue</td><td>104–71</td><td class="sp-margin">33</td></tr>'
+    +'<tr><td>Tennessee St.</td><td>#15</td><td>Midwest</td><td>'+tblOwner('topper')+'</td><td>Iowa State</td><td>108–74</td><td class="sp-margin">34</td></tr>'
+    +'<tr><td>Long Island</td><td>#16</td><td>West</td><td>'+tblOwner('topper')+'</td><td>Arizona</td><td>92–58</td><td class="sp-margin">34</td></tr>'
+    +'<tr><td>Prairie View</td><td>#16</td><td>South</td><td>'+tblOwner('stark')+'</td><td>Florida</td><td>114–55</td><td class="sp-l sp-margin">59</td></tr>'
+    +'</tbody></table></div></details>';
+
   html += '<div class="pcard-sec">Special Side Pots</div>'
-    + '<div class="pcard"><div class="pcard-hdr"><div><div class="pcard-name">Biggest R1 Loss</div><div class="pcard-pct">4% of pot</div></div><div class="pcard-amt">$'+Math.round(POTS.loss)+'</div></div><div class="pcard-rule">Largest point-margin defeat in Round of 64. Tiebreaker: lowest points scored.</div>'+blossHtml+'</div>'
-    + '<div class="pcard"><div class="pcard-hdr"><div><div class="pcard-name">Biggest Upset</div><div class="pcard-pct">4% of pot</div></div><div class="pcard-amt">$'+Math.round(POTS.upset)+'</div></div><div class="pcard-rule">Largest seed differential upset in the tournament. Tiebreaker: higher seed wins.</div>'+bupsetHtml+'</div>'
-    + '<div class="pcard"><div class="pcard-hdr"><div><div class="pcard-name">Best #15 / #16 Seed</div><div class="pcard-pct">4% of pot</div></div><div class="pcard-amt">$'+Math.round(POTS.seed15)+'</div></div><div class="pcard-rule">Awarded to the 15 or 16 seed that goes furthest. Tiebreaker: margin of defeat.</div>'+best1516Html+'</div>';
+    + '<div class="pcard"><div class="pcard-hdr"><div><div class="pcard-name">📉 Biggest R1 Loss</div><div class="pcard-pct">4% of pot · R64 only · CONFIRMED</div></div><div class="pcard-amt">$'+c(POTS.loss)+'</div></div><div class="pcard-rule">Largest point-margin defeat in R64. Tie → lowest pts scored. Tie → split.</div>'+blossWinner+blossDropdown+'</div>'
+    + '<div class="pcard"><div class="pcard-hdr"><div><div class="pcard-name">⚡ Biggest Upset</div><div class="pcard-pct">4% of pot · any round · MOVING TARGET</div></div><div class="pcard-amt">$'+c(POTS.upset)+'</div></div><div class="pcard-rule">Largest seed diff upset, any round. Tie → higher seed wins. Tie → split.</div>'+bupsetWinner+upsetDropdown+'</div>'
+    + '<div class="pcard"><div class="pcard-hdr"><div><div class="pcard-name">🏅 Best #15 / #16 Seed</div><div class="pcard-pct">4% of pot · CONFIRMED (all lost R1)</div></div><div class="pcard-amt">$'+c(POTS.seed15)+'</div></div><div class="pcard-rule">Furthest round reached. Same round → smallest loss margin in that round. Tie → split.</div>'+best1516Winner+seed15Dropdown+'</div>';
 
   el.innerHTML = html;
 }
