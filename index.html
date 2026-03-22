@@ -7,6 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Calcutta 2026</title>
 <style>
+
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{
   background:#08080f;
@@ -312,6 +313,8 @@ html,body{
 </style>
 </head>
 <body>
+
+
 <div id="app">
 
   <!-- HEADER -->
@@ -352,11 +355,11 @@ html,body{
   <!-- BOTTOM NAV -->
   <nav class="bottom-nav">
     <button class="nav-btn on" onclick="switchTab('games',this)">
-      <span class="nav-icon">📋</span>
+      <span class="nav-icon">🏀</span>
       <span class="nav-label">Games</span>
     </button>
     <button class="nav-btn" onclick="switchTab('teams',this)">
-      <span class="nav-icon">🏀</span>
+      <span class="nav-icon">📋</span>
       <span class="nav-label">Teams</span>
     </button>
     <button class="nav-btn" onclick="switchTab('standings',this)">
@@ -1408,6 +1411,7 @@ function renderAll() {
 /* ── BOOT ─────────────────────────────────────────────── */
 renderAll();
 startPolling();
+
 </script>
 <script data-goatcounter="https://calcutta.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 </body>
