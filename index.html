@@ -47,7 +47,7 @@ html,body{
 .scroll-area{
   flex:1;overflow-y:auto;overflow-x:hidden;
   -webkit-overflow-scrolling:touch;
-  padding:12px 12px 0;
+  padding:8px 10px 0;
 }
 
 /* ── BOTTOM NAV ──────────────────────────────────────── */
@@ -85,20 +85,20 @@ html,body{
 /* ══════════════════════════════════════════════════════
    TEAMS TAB — grouped by owner
 ══════════════════════════════════════════════════════ */
-.owner-list{display:flex;flex-direction:column;gap:6px;padding-bottom:12px}
+.owner-list{display:flex;flex-direction:column;gap:5px;padding-bottom:10px}
 
 .ocard{
-  background:#111119;border-radius:10px;
+  background:#111119;border-radius:9px;
   overflow:hidden;border:1px solid #1a1a27;
   position:relative;
 }
-.ocard::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--oc)}
+.ocard::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--oc)}
 .ocard.has-live{border-color:rgba(245,158,11,.3)}
 
 /* owner header — single tight line */
 .ocard-hdr{
   display:flex;align-items:center;gap:0;
-  padding:7px 12px 6px;
+  padding:6px 11px 5px;
   flex-wrap:nowrap;overflow:hidden;
 }
 .ocard-name{font-size:14px;font-weight:800;color:var(--oc);line-height:1;letter-spacing:-.2px;white-space:nowrap;flex-shrink:0}
@@ -113,24 +113,24 @@ html,body{
 
 /* ── TEAMS tab chip rows ─────────────────────────────── */
 .ocard-teams{
-  padding:6px 12px 8px;
+  padding:5px 11px 7px;
   border-top:1px solid #16161f;
-  display:flex;flex-direction:column;gap:5px;
+  display:flex;flex-direction:column;gap:4px;
 }
-.ocard-alive-row{display:flex;flex-wrap:wrap;gap:4px;align-items:flex-start;}
+.ocard-alive-row{display:flex;flex-wrap:wrap;gap:3px;align-items:flex-start;}
 
 /* alive chip — mirrors .stand-team-chip but slightly brighter */
 .tchip{
-  display:inline-flex;align-items:center;gap:4px;
-  background:#161625;border-radius:6px;
-  padding:3px 7px 3px 4px;
+  display:inline-flex;align-items:center;gap:3px;
+  background:#161625;border-radius:5px;
+  padding:2px 6px 2px 3px;
   flex-shrink:0;width:auto;
 }
 .tchip.live  {background:#140f04;}
 .tchip.earned{background:#0b130b;}
 
-.tchip-logo{width:20px;height:20px;border-radius:4px;object-fit:contain;background:#1a1a28;flex-shrink:0}
-.tchip-logo-fb{width:20px;height:20px;border-radius:4px;background:#1a1a28;display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:800;color:#34344a;flex-shrink:0}
+.tchip-logo{width:16px;height:16px;border-radius:3px;object-fit:contain;background:#1a1a28;flex-shrink:0}
+.tchip-logo-fb{width:16px;height:16px;border-radius:3px;background:#1a1a28;display:flex;align-items:center;justify-content:center;font-size:6px;font-weight:800;color:#34344a;flex-shrink:0}
 
 .tchip-label{font-size:10px;font-weight:500;color:#7070aa;white-space:nowrap}
 .tchip-label .tchip-seed{font-weight:700;color:#3a3a55}
@@ -146,9 +146,9 @@ html,body{
 
 /* ── lost line — plain text, no chips ───────────────── */
 .ocard-lost-row{
-  font-size:9px;color:#2e2e45;line-height:1.5;
+  font-size:8px;color:#2e2e45;line-height:1.4;
   border-top:1px solid #14141e;
-  padding-top:5px;margin-top:0;
+  padding-top:4px;margin-top:0;
 }
 .ocard-lost-lbl{font-weight:700;letter-spacing:.6px;text-transform:uppercase;margin-right:5px;color:#282838}
 .ocard-lost-sep{color:#222232}
@@ -160,7 +160,7 @@ html,body{
 /* ── Scoring breakdown toggle ───────────────────────── */
 .sb-toggle{
   display:flex;align-items:center;justify-content:center;gap:5px;
-  width:100%;padding:6px 12px;
+  width:100%;padding:5px 11px;
   border:none;background:none;
   border-top:1px solid #14141e;
   font-size:9px;font-weight:700;letter-spacing:1px;color:#2e2e48;
@@ -172,14 +172,14 @@ html,body{
 .sb-chevron{display:inline-block;transition:transform .2s;font-style:normal}
 .sb-toggle.open .sb-chevron{transform:rotate(180deg)}
 
-.sb-wrap{display:none;border-top:1px solid #14141e;padding:12px 14px 10px}
+.sb-wrap{display:none;border-top:1px solid #14141e;padding:9px 11px 8px}
 .sb-wrap.open{display:block}
 
-.sb-team{margin-bottom:10px}
+.sb-team{margin-bottom:7px}
 .sb-team:last-child{margin-bottom:0}
 .sb-thdr{
-  display:flex;align-items:center;gap:5px;
-  margin-bottom:4px;
+  display:flex;align-items:center;gap:4px;
+  margin-bottom:3px;
 }
 .sb-thdr-logo{width:16px;height:16px;border-radius:3px;object-fit:contain}
 .sb-thdr-logo-fb{width:16px;height:16px;border-radius:3px;background:#1a1a28;display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:800;color:#34344a}
@@ -188,8 +188,8 @@ html,body{
 
 .sb-row{
   display:flex;align-items:center;
-  padding:2px 0 2px 21px;
-  font-size:10px;gap:8px;
+  padding:1px 0 1px 20px;
+  font-size:10px;gap:6px;
 }
 .sb-pot{
   min-width:36px;font-weight:700;letter-spacing:.5px;
@@ -203,15 +203,15 @@ html,body{
 
 .sb-divider{
   border:none;border-top:1px solid #14141e;
-  margin:8px 0;
+  margin:5px 0;
 }
 .sb-sidepot-hdr{
   font-size:8px;font-weight:700;letter-spacing:1px;
-  text-transform:uppercase;color:#2e2e45;margin-bottom:5px;
+  text-transform:uppercase;color:#2e2e45;margin-bottom:3px;
 }
 .sb-sidepot-row{
-  display:flex;align-items:center;gap:6px;
-  font-size:10px;padding:2px 0;
+  display:flex;align-items:center;gap:5px;
+  font-size:10px;padding:1px 0;
 }
 .sb-sidepot-icon{font-size:10px}
 .sb-sidepot-desc{flex:1;color:#4a4a68}
@@ -259,7 +259,7 @@ html,body{
 .splash-rank-net.neg{color:#3a3a58}
 
 /* live games logos */
-.splash-games{display:flex;flex-wrap:wrap;gap:6px}
+.splash-games{display:flex;flex-wrap:wrap;justify-content:center;gap:6px}
 .splash-game-pair{
   display:flex;flex-direction:column;align-items:center;gap:4px;
   background:#161625;border-radius:12px;
@@ -302,7 +302,7 @@ html,body{
 /* ══════════════════════════════════════════════════════
    GAMES TAB — full-width matchup cards
 ══════════════════════════════════════════════════════ */
-.games-section{margin-bottom:20px}
+.games-section{margin-bottom:16px}
 .games-sec-hdr{
   font-size:10px;font-weight:700;letter-spacing:2.5px;
   color:#3a3a55;text-transform:uppercase;
@@ -310,6 +310,7 @@ html,body{
 }
 .games-sec-hdr .live-dot{width:6px;height:6px;background:#ef4444}
 .game-list{display:flex;flex-direction:column;gap:8px}
+
 
 /* ── MATCHUP CARD ────────────────────────────────────── */
 .mcard{background:#111119;border-radius:12px;overflow:hidden;border:1px solid #1a1a27}
@@ -1359,7 +1360,7 @@ function renderTeams() {
           + '<span style="font-size:13px;font-weight:800;color:var(--oc);white-space:nowrap">'+netStr+'</span>'
         + '</div>'
       + '</div>'
-      + (spPills ? '<div style="display:flex;flex-wrap:wrap;gap:4px;padding:0 12px 6px">'+spPills+'</div>' : '')
+      + (spPills ? '<div style="display:flex;flex-wrap:wrap;gap:3px;padding:0 11px 5px">'+spPills+'</div>' : '')
       + '<div class="ocard-teams">'
         + '<div class="ocard-alive-row">'+aliveChips+'</div>'
         + lostRow
