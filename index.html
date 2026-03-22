@@ -225,6 +225,81 @@ html,body{
 }
 
 /* ══════════════════════════════════════════════════════
+   SPLASH MODAL
+══════════════════════════════════════════════════════ */
+#splash-overlay{
+  position:fixed;inset:0;z-index:2000;
+  background:rgba(0,0,0,.75);
+  display:flex;align-items:center;justify-content:center;
+  padding:20px;
+}
+#splash-box{
+  background:#0f0f1e;border:1px solid #1e1e35;border-radius:18px;
+  width:100%;max-width:360px;overflow:hidden;
+}
+.splash-hdr{
+  padding:18px 18px 14px;
+  border-bottom:1px solid #14141e;
+}
+.splash-title{font-size:13px;font-weight:800;color:#e2e2ef;letter-spacing:.2px}
+.splash-sub{font-size:10px;color:#3a3a58;margin-top:2px;letter-spacing:.3px}
+
+.splash-section{padding:14px 18px;border-bottom:1px solid #14141e}
+.splash-sec-lbl{
+  font-size:8px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;
+  color:#2e2e48;margin-bottom:10px;
+}
+/* top 3 */
+.splash-podium{display:flex;flex-direction:column;gap:7px}
+.splash-rank-row{display:flex;align-items:center;gap:8px}
+.splash-rank-num{font-size:10px;font-weight:700;color:#2e2e45;width:14px;text-align:right;flex-shrink:0}
+.splash-rank-name{flex:1;font-size:13px;font-weight:700}
+.splash-rank-net{font-size:13px;font-weight:800}
+.splash-rank-net.pos{color:#22c55e}
+.splash-rank-net.neg{color:#3a3a58}
+
+/* live games logos */
+.splash-games{display:flex;flex-wrap:wrap;gap:6px}
+.splash-game-pair{
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+  background:#161625;border-radius:12px;
+  padding:7px 10px;
+}
+.splash-game-row{display:flex;align-items:center;gap:5px}
+.splash-logo{width:26px;height:26px;border-radius:6px;object-fit:contain;background:#1a1a28}
+.splash-logo-fb{width:26px;height:26px;border-radius:6px;background:#1a1a28;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:800;color:#34344a}
+.splash-vs{font-size:8px;color:#22223a;font-weight:700}
+.splash-score{font-size:11px;font-weight:700;color:#7070aa;min-width:14px;text-align:center}
+.splash-live-dot{width:5px;height:5px;border-radius:50%;background:#ef4444;flex-shrink:0;animation:red-pulse 1s ease-in-out infinite}
+.splash-game-detail{font-size:8px;font-weight:600;color:#3a3a58;white-space:nowrap;text-align:center;width:100%}
+@keyframes red-pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* round alert */
+.splash-alert{
+  margin:0;padding:10px 18px;
+  background:rgba(245,158,11,.07);border-bottom:1px solid rgba(245,158,11,.15);
+  display:flex;align-items:center;gap:7px;
+  font-size:10px;color:#a07020;line-height:1.4;
+}
+.splash-alert-dot{width:6px;height:6px;border-radius:50%;background:#f59e0b;flex-shrink:0;animation:amber-pulse 1s ease-in-out infinite}
+
+/* updates */
+.splash-updates{padding:10px 18px;border-top:1px solid #14141e}
+.splash-updates-list{
+  list-style:disc;margin:0;padding:0 0 0 14px;
+  display:flex;flex-direction:column;gap:5px;
+}
+.splash-updates-list li{font-size:9px;color:#3a3a58;line-height:1.4}
+
+/* dismiss */
+.splash-footer{padding:14px 18px}
+.splash-dismiss{
+  width:100%;padding:11px;border:none;border-radius:10px;
+  background:#f59e0b;color:#0a0a14;font-size:13px;font-weight:700;
+  cursor:pointer;letter-spacing:.2px;
+}
+
+/* ══════════════════════════════════════════════════════
    GAMES TAB — full-width matchup cards
 ══════════════════════════════════════════════════════ */
 .games-section{margin-bottom:20px}
@@ -543,6 +618,14 @@ document.addEventListener('DOMContentLoaded', function(){
 });
 
 var TOTAL_POT = 27160;
+
+/* ── CHANGELOG — update manually, newest first, max 3 shown ──
+   These appear in the splash modal under "Recent Updates".      */
+var CHANGELOG = [
+  'Added scoring breakdown to each owner card in Teams tab',
+  'S16 payout rate now stable during R32 — updates when round ends',
+  'Feedback form added — submit corrections or questions via 💬',
+];
 
 var POTS = {
   r1:     2716.00,
@@ -997,6 +1080,13 @@ function processESPN(data) {
 
     var state=comp.status&&comp.status.type?comp.status.type.state:'pre';
     var detail=comp.status&&comp.status.type?comp.status.type.shortDetail:'';
+    var clock =comp.status&&comp.status.displayClock?comp.status.displayClock:'';
+    var period=comp.status&&comp.status.period?comp.status.period:0;
+    var periodLabel=period===1?'1ST':period===2?'2ND':period===3?'OT':period>3?'OT'+( period-2):'';
+    var isHalftime = comp.status&&comp.status.type&&comp.status.type.name==='STATUS_HALFTIME';
+    var liveDetail = isHalftime
+      ? 'HT · 0:00'
+      : (clock&&periodLabel ? clock+' · '+periodLabel : detail);
 
     var teams=comps.map(function(c){
       var nm=c.team?(c.team.shortDisplayName||c.team.displayName||''):'';
@@ -1035,7 +1125,7 @@ function processESPN(data) {
       if(t.logoUrl) t.matched.logo=t.logoUrl;
     });
 
-    var g={t1:teams[0],t2:teams[1],round:gameRound,detail:detail,date:toETDate(ev.date||''),evDate:ev.date||''};
+    var g={t1:teams[0],t2:teams[1],round:gameRound,detail:state==='in'?liveDetail:detail,date:toETDate(ev.date||''),evDate:ev.date||''};
     if(state==='in')        liveGames.push(g);
     else if(state==='post') completedGames.push(g);
     else                    upcomingGames.push(g);
@@ -1074,6 +1164,7 @@ function startPolling() {
         if(r&&r.events) merged.events=merged.events.concat(r.events);
       });
       processESPN(merged);
+      showSplash(); /* fire after first real data load */
     });
   }
   fetchAll();
@@ -1907,6 +1998,113 @@ function getCurrentRound() {
   return current;
 }
 
+/* ── SPLASH ───────────────────────────────────────────── */
+var _splashShown = false;
+function showSplash() {
+  if(_splashShown) return;
+  if(sessionStorage.getItem('splashSeen')) return;
+  _splashShown = true;
+
+  var cr = getCurrentRound();
+  var roundFull = {'R64':'Round of 64','R32':'Round of 32','S16':'Sweet 16','E8':'Elite 8','F4':'Final Four','NCG':'Championship'}[cr]||cr;
+  var isLive = liveGames.length > 0;
+
+  /* Top 3 by net */
+  var sorted = Object.keys(OWNERS).sort(function(a,b){ return ownerNet(b)-ownerNet(a); });
+  var medals = ['1','2','3'];
+  var podiumHtml = sorted.slice(0,3).map(function(oid,i){
+    var o = OWNERS[oid];
+    var net = ownerNet(oid);
+    var netStr = (net>=0?'+$':'-$')+c(Math.abs(net));
+    var cls = net>=0?'pos':'neg';
+    return '<div class="splash-rank-row">'
+      + '<span class="splash-rank-num">'+medals[i]+'</span>'
+      + '<span class="splash-rank-name" style="color:'+o.color+'">'+o.name+'</span>'
+      + '<span class="splash-rank-net '+cls+'">'+netStr+'</span>'
+    + '</div>';
+  }).join('');
+
+  /* Live game logo pairs */
+  var gamesHtml = '';
+  if(isLive) {
+    gamesHtml = liveGames.map(function(g){
+      function logoEl(t) {
+        var src = (t.matched&&(t.matched.logo||LOGOS[t.matched.name]))||'';
+        return src
+          ? '<img src="'+src+'" class="splash-logo" onerror="this.style.display=\'none\'">'
+          : '<div class="splash-logo-fb">'+(t.matched?t.matched.seed:'?')+'</div>';
+      }
+      var hasScore = g.t1.score||g.t2.score;
+      var scoreHtml = hasScore
+        ? '<span class="splash-score">'+g.t1.score+'</span>'
+          + '<span class="splash-vs">–</span>'
+          + '<span class="splash-score">'+g.t2.score+'</span>'
+        : '<span class="splash-vs">vs</span>';
+      var detailHtml = g.detail ? '<div class="splash-game-detail">'+g.detail+'</div>' : '';
+      return '<div class="splash-game-pair">'
+        + '<div class="splash-game-row"><span class="splash-live-dot"></span>'+logoEl(g.t1)+scoreHtml+logoEl(g.t2)+'</div>'
+        + detailHtml
+      + '</div>';
+    }).join('');
+  }
+
+  /* Recent updates — live game data, priority ordered, max 3 */
+  var _sp = computeSidePots();
+  var _r1w = getR1Winners();
+  var _s16w = getS16Winners();
+  var _ups = [];
+  if(_sp.upsetWinners.length && _sp.upsetTeams.length)
+    _ups.push({p:10, text:'⚡ Biggest Upset: '+_sp.upsetTeams[0]+' (+'+_sp.bupsetDiff+' seed diff) — '+OWNERS[_sp.upsetWinners[0]].name});
+  if(_sp.lossConfirmed && _sp.lossTeams.length)
+    _ups.push({p:9,  text:'📉 Biggest Loss: '+_sp.lossTeams[0]+' — '+OWNERS[_sp.lossWinners[0]].name+' wins $'+c(POTS.loss)});
+  if(_sp.seed15Confirmed && _sp.seed15Teams.length)
+    _ups.push({p:9,  text:'🏅 Best 15/16: '+_sp.seed15Teams[0]+' — '+OWNERS[_sp.seed15Winners[0]].name+' wins $'+c(POTS.seed15)});
+  if(_s16w.length > 0)
+    _ups.push({p:8,  text:'🏀 '+_s16w.length+' team'+(_s16w.length>1?'s':'')+' advancing to Sweet 16'});
+  if(_r1w.length > 0)
+    _ups.push({p:7,  text:'💰 R1 payouts set — $'+c(getR1PerTeam())+'/team ('+_r1w.length+' winners)'});
+  if(liveGames.length > 0)
+    _ups.push({p:6,  text:'🔴 '+liveGames.length+' game'+(liveGames.length>1?'s':'')+' live now'});
+  _ups.sort(function(a,b){ return b.p-a.p; });
+  var updatesHtml = _ups.slice(0,3).map(function(u){ return '<li>'+u.text+'</li>'; }).join('');
+
+  /* Round alert */
+  var alertHtml = isLive
+    ? '<div class="splash-alert"><div class="splash-alert-dot"></div>'+roundFull+' in progress — earnings subject to change as results finalize</div>'
+    : '';
+
+  var html = '<div id="splash-overlay" onclick="if(event.target===this)closeSplash()">'
+    + '<div id="splash-box">'
+      + '<div class="splash-hdr">'
+        + '<div class="splash-title">Calcutta 2026</div>'
+        + '<div class="splash-sub">MARCH MADNESS · $27,160 POT · '+roundFull.toUpperCase()+(isLive?' · LIVE':'')+'</div>'
+      + '</div>'
+      + alertHtml
+      + '<div class="splash-section">'
+        + '<div class="splash-sec-lbl">Standings</div>'
+        + '<div class="splash-podium">'+podiumHtml+'</div>'
+      + '</div>'
+      + (isLive
+          ? '<div class="splash-section"><div class="splash-sec-lbl">Live Now</div><div class="splash-games">'+gamesHtml+'</div></div>'
+          : '')
+      + (updatesHtml ? '<div class="splash-updates"><ul class="splash-updates-list">'+updatesHtml+'</ul></div>' : '')
+      + '<div class="splash-footer">'
+        + '<button class="splash-dismiss" onclick="closeSplash()">Let\'s go →</button>'
+      + '</div>'
+    + '</div>'
+  + '</div>';
+
+  var el = document.createElement('div');
+  el.innerHTML = html;
+  document.body.appendChild(el.firstChild);
+}
+
+function closeSplash() {
+  var ov = document.getElementById('splash-overlay');
+  if(ov) ov.remove();
+  sessionStorage.setItem('splashSeen','1');
+}
+
 function renderAll() {
   var currentRound=getCurrentRound();
   var rt=document.getElementById('round-txt');
@@ -1921,7 +2119,7 @@ function renderAll() {
 
 /* ── BOOT ─────────────────────────────────────────────── */
 renderAll();
-startPolling();
+startPolling(); /* showSplash() fires inside startPolling after first ESPN fetch */
 
 </script>
 <script data-goatcounter="https://calcutta.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
