@@ -157,6 +157,73 @@ html,body{
 /* owner card loss badge — shown in standings */
 .ocard-loss-badge{display:inline-flex;align-items:center;gap:3px;font-size:8px;font-weight:800;color:#ef4444;background:#1a0808;border:1px solid rgba(239,68,68,.2);border-radius:4px;padding:2px 6px;margin-top:5px}
 
+/* ── Scoring breakdown toggle ───────────────────────── */
+.sb-toggle{
+  display:flex;align-items:center;justify-content:center;gap:5px;
+  width:100%;padding:8px 14px;
+  border:none;background:none;
+  border-top:1px solid #14141e;
+  font-size:9px;font-weight:700;letter-spacing:1px;color:#2e2e48;
+  text-transform:uppercase;cursor:pointer;
+  transition:color .15s;
+}
+.sb-toggle:hover{color:#5a5a7a}
+.sb-toggle.open{color:#5a5a88}
+.sb-chevron{display:inline-block;transition:transform .2s;font-style:normal}
+.sb-toggle.open .sb-chevron{transform:rotate(180deg)}
+
+.sb-wrap{display:none;border-top:1px solid #14141e;padding:12px 14px 10px}
+.sb-wrap.open{display:block}
+
+.sb-team{margin-bottom:10px}
+.sb-team:last-child{margin-bottom:0}
+.sb-thdr{
+  display:flex;align-items:center;gap:5px;
+  margin-bottom:4px;
+}
+.sb-thdr-logo{width:16px;height:16px;border-radius:3px;object-fit:contain}
+.sb-thdr-logo-fb{width:16px;height:16px;border-radius:3px;background:#1a1a28;display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:800;color:#34344a}
+.sb-thdr-name{font-size:10px;font-weight:700;color:#4a4a68;letter-spacing:.2px}
+.sb-thdr-seed{color:#2e2e45;font-weight:500;margin-right:2px}
+
+.sb-row{
+  display:flex;align-items:center;
+  padding:2px 0 2px 21px;
+  font-size:10px;
+}
+.sb-pot{
+  min-width:36px;font-weight:700;letter-spacing:.5px;
+  font-size:8px;text-transform:uppercase;color:#2e2e45;
+}
+.sb-desc{flex:1;color:#2e2e45}
+.sb-amt{font-weight:700;font-size:10px;color:#3a3a55;white-space:nowrap}
+.sb-row.earned .sb-desc{color:#4a6a50}
+.sb-row.earned .sb-amt{color:#4ade80}
+.sb-row.earned .sb-pot{color:#2d5c36}
+
+.sb-divider{
+  border:none;border-top:1px solid #14141e;
+  margin:8px 0;
+}
+.sb-sidepot-hdr{
+  font-size:8px;font-weight:700;letter-spacing:1px;
+  text-transform:uppercase;color:#2e2e45;margin-bottom:5px;
+}
+.sb-sidepot-row{
+  display:flex;align-items:center;gap:6px;
+  font-size:10px;padding:2px 0;
+}
+.sb-sidepot-icon{font-size:10px}
+.sb-sidepot-desc{flex:1;color:#4a4a68}
+.sb-sidepot-amt{font-weight:700;color:#4ade80}
+
+.sb-footnote{
+  font-size:9px;color:#2a2a40;
+  border-top:1px solid #14141e;
+  margin-top:8px;padding-top:7px;
+  line-height:1.5;
+}
+
 /* ══════════════════════════════════════════════════════
    GAMES TAB — full-width matchup cards
 ══════════════════════════════════════════════════════ */
@@ -662,22 +729,33 @@ function getR1PerTeam() { var w=getR1Winners().length; return w>0?Math.ceil(POTS
 function c(n){ return Math.floor(Number(n)).toLocaleString('en-US'); }
 
 /* S16 pot: split among seeds 4-16 who won R32 (made Sweet 16).
-   Use actual wonR32 data when any exists; fall back to projection. */
+   During R32: always project from alive eligible seeds (avoids mid-round inflation
+   when only a few winners exist). Lock to actual count only once R32 is over. */
 function getS16Winners() { return TEAMS.filter(function(t){ return t.seed>=4 && t.wonR32; }); }
 function computeS16PerTeam() {
-  var winners = getS16Winners();
-  if(winners.length>0) return Math.ceil(POTS.s16/winners.length);
-  /* pre-R32 projection: eligible seeds 4+ still alive, max 16 */
+  var cr = getCurrentRound();
+  var r32Done = (cr==='S16'||cr==='E8'||cr==='F4'||cr==='NCG');
+  if(r32Done) {
+    var winners = getS16Winners();
+    if(winners.length>0) return Math.ceil(POTS.s16/winners.length);
+  }
+  /* During/before R32: project from all seeds 4+ still alive, capped at 16 */
   var eligible = TEAMS.filter(function(t){ return t.seed>=4 && t.status!=='lost'; });
   var projected = Math.min(eligible.length, 16);
   return projected>0 ? Math.ceil(POTS.s16/projected) : 0;
 }
 
-/* E8 pot: split among seeds 1-3 who won S16 (made Elite 8). */
+/* E8 pot: split among seeds 1-3 who won S16 (made Elite 8).
+   Same pattern: lock to actuals only once S16 is over. */
 function getE8Winners() { return TEAMS.filter(function(t){ return t.top3 && t.wonS16; }); }
 function computeE8PerTeam() {
-  var winners = getE8Winners();
-  if(winners.length>0) return Math.ceil(POTS.e8/winners.length);
+  var cr = getCurrentRound();
+  var s16Done = (cr==='E8'||cr==='F4'||cr==='NCG');
+  if(s16Done) {
+    var winners = getE8Winners();
+    if(winners.length>0) return Math.ceil(POTS.e8/winners.length);
+  }
+  /* During/before S16: project from all top-3 seeds still alive, capped at 8 */
   var eligible = TEAMS.filter(function(t){ return t.top3 && t.status!=='lost'; });
   var projected = Math.min(eligible.length, 8);
   return projected>0 ? Math.ceil(POTS.e8/projected) : 0;
@@ -1024,6 +1102,80 @@ function ownerTag(oid, size) {
    RENDER — TEAMS (3-col alive grid)
 ═══════════════════════════════════════════════════════ */
 
+function toggleScoring(oid) {
+  var wrap = document.getElementById('sb-'+oid);
+  var btn  = document.getElementById('sbt-'+oid);
+  if(!wrap||!btn) return;
+  wrap.classList.toggle('open');
+  btn.classList.toggle('open');
+}
+
+function buildScoringBreakdown(oid) {
+  var r1pp  = getR1PerTeam();
+  var s16pp = computeS16PerTeam();
+  var e8pp  = computeE8PerTeam();
+  var sp    = computeSidePots();
+  var myTeams = TEAMS.filter(function(t){ return t.owner===oid; })
+    .sort(function(a,b){ return a.seed-b.seed; });
+
+  var hasS16Earned = myTeams.some(function(t){ return t.seed>=4 && t.wonR32; });
+  var hasVariableS16 = hasS16Earned && getS16Winners().length < 16;
+
+  /* Build per-team rows — confirmed earnings only */
+  var teamRows = myTeams.map(function(t) {
+    var rows = [];
+    if(t.r1eligible && t.wonR1)  rows.push({pot:'R1',  desc:'Won R64',          amt:'+$'+c(r1pp)});
+    if(t.seed>=4   && t.wonR32)  rows.push({pot:'S16', desc:'Won R32',           amt:'+$'+c(s16pp)+(hasVariableS16?'*':'')});
+    if(t.top3      && t.wonS16)  rows.push({pot:'E8',  desc:'Won S16',           amt:'+$'+c(e8pp)});
+    if(t.wonE8)                  rows.push({pot:'F4',  desc:'Won E8',            amt:'+$'+c(POTS.f4)});
+    if(t.wonF4)                  rows.push({pot:'Finals', desc:'Won Final Four', amt:'+$'+c(POTS.finals)});
+    if(t.wonNCG)                 rows.push({pot:'Champ',  desc:'Won Championship',amt:'+$'+c(POTS.champ)});
+    if(rows.length === 0) return '';
+
+    var logoSrc = t.logo||LOGOS[t.name]||'';
+    var logoHtml = logoSrc
+      ? '<img src="'+logoSrc+'" class="sb-thdr-logo" onerror="this.style.display=\'none\'">'
+      : '<div class="sb-thdr-logo-fb">'+t.seed+'</div>';
+    var nm = t.name.replace('Saint ','St. ').replace('Northern ','N. ').replace(' State',' St.');
+
+    return '<div class="sb-team">'
+      + '<div class="sb-thdr">'+logoHtml+'<span class="sb-thdr-name"><span class="sb-thdr-seed">#'+t.seed+' </span>'+nm+'</span></div>'
+      + rows.map(function(r){
+          return '<div class="sb-row earned">'
+            + '<span class="sb-pot">'+r.pot+'</span>'
+            + '<span class="sb-desc">'+r.desc+'</span>'
+            + '<span class="sb-amt">'+r.amt+'</span>'
+          + '</div>';
+        }).join('')
+    + '</div>';
+  }).join('');
+
+  /* Side pots */
+  var spHtml = '';
+  var ownsLoss  = sp.lossConfirmed    && sp.lossWinners.indexOf(oid)>-1;
+  var ownsUpset = sp.upsetWinners.length && sp.upsetWinners.indexOf(oid)>-1;
+  var owns1516  = sp.seed15Confirmed  && sp.seed15Winners.indexOf(oid)>-1;
+  if(ownsLoss||ownsUpset||owns1516) {
+    spHtml += '<hr class="sb-divider"><div class="sb-sidepot-hdr">Side Pots</div>';
+    if(ownsLoss)  spHtml += '<div class="sb-sidepot-row"><span class="sb-sidepot-icon">📉</span><span class="sb-sidepot-desc">Biggest Loss — '+sp.lossTeams.join(', ')+'</span><span class="sb-sidepot-amt">+$'+c(POTS.loss/sp.lossWinners.length)+'</span></div>';
+    if(ownsUpset) spHtml += '<div class="sb-sidepot-row"><span class="sb-sidepot-icon">⚡</span><span class="sb-sidepot-desc">Biggest Upset — '+sp.upsetTeams.join(', ')+'</span><span class="sb-sidepot-amt">+$'+c(POTS.upset/sp.upsetWinners.length)+'</span></div>';
+    if(owns1516)  spHtml += '<div class="sb-sidepot-row"><span class="sb-sidepot-icon">🏅</span><span class="sb-sidepot-desc">Best 15/16 — '+sp.seed15Teams.join(', ')+'</span><span class="sb-sidepot-amt">+$'+c(POTS.seed15/sp.seed15Winners.length)+'</span></div>';
+  }
+
+  var hasAnyEarnings = teamRows.trim()!==''||ownsLoss||ownsUpset||owns1516;
+  if(!hasAnyEarnings) {
+    return '<div class="sb-wrap" id="sb-'+oid+'"><div style="font-size:10px;color:#2e2e45;text-align:center;padding:4px 0">No confirmed earnings yet</div></div>';
+  }
+
+  var footnote = hasVariableS16
+    ? '<div class="sb-footnote">* S16 rate adjusts as R32 results are finalized — payout per team subject to change</div>'
+    : '';
+
+  return '<div class="sb-wrap" id="sb-'+oid+'">'
+    + teamRows + spHtml + footnote
+  + '</div>';
+}
+
 function renderTeams() {
   var el    = document.getElementById('owner-list');
   var label = document.getElementById('teams-label');
@@ -1155,6 +1307,10 @@ function renderTeams() {
         + '<div class="ocard-alive-row">'+aliveChips+'</div>'
         + lostRow
       + '</div>'
+      + '<button class="sb-toggle" id="sbt-'+oid+'" onclick="toggleScoring(\''+oid+'\')">'
+        + 'Scoring <i class="sb-chevron">▾</i>'
+      + '</button>'
+      + buildScoringBreakdown(oid)
     + '</div>';
   }).join('');
 }
