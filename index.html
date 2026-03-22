@@ -1388,7 +1388,8 @@ function renderPayouts() {
   });
   allUpsetDisplay.sort(function(a,b){ return b.diff-a.diff||b.wSeed-a.wSeed; });
   var upsetRows = allUpsetDisplay.slice(0,8).map(function(e){
-    var isWinner = sp.upsetTeams.indexOf(e.wName)>-1;
+    /* match on name AND diff to avoid highlighting same team's lesser upsets */
+    var isWinner = sp.upsetTeams.indexOf(e.wName)>-1 && e.diff===sp.bupsetDiff;
     return '<tr'+(isWinner?' class="sp-win"':'')+'>'
       +'<td>'+(isWinner?'<b>':'')+e.wName+(isWinner?'</b>':'')+'</td><td>#'+e.wSeed+'</td>'
       +'<td>'+e.lName+'</td><td>#'+e.lSeed+'</td>'
