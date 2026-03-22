@@ -85,39 +85,39 @@ html,body{
 /* ══════════════════════════════════════════════════════
    TEAMS TAB — grouped by owner
 ══════════════════════════════════════════════════════ */
-.owner-list{display:flex;flex-direction:column;gap:10px;padding-bottom:16px}
+.owner-list{display:flex;flex-direction:column;gap:6px;padding-bottom:12px}
 
 .ocard{
-  background:#111119;border-radius:14px;
+  background:#111119;border-radius:10px;
   overflow:hidden;border:1px solid #1a1a27;
   position:relative;
 }
 .ocard::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--oc)}
 .ocard.has-live{border-color:rgba(245,158,11,.3)}
 
-/* owner header — 2-row layout */
-.ocard-hdr{display:flex;flex-direction:column;gap:3px;padding:13px 14px 10px;}
-.ocard-row1{display:flex;align-items:center;justify-content:space-between;}
-.ocard-row2{display:flex;align-items:baseline;justify-content:space-between;}
-.ocard-name{font-size:17px;font-weight:800;color:var(--oc);line-height:1;letter-spacing:-.3px}
-.ocard-alive-pill{font-size:9px;font-weight:700;color:#22c55e;background:rgba(34,197,94,.12);border-radius:20px;padding:2px 7px;margin-left:7px;letter-spacing:.3px}
-.ocard-sp-pill{font-size:8px;font-weight:700;border-radius:20px;padding:2px 7px;margin-left:5px;letter-spacing:.2px;white-space:nowrap}
-.ocard-sp-pill.upset {color:#f59e0b;background:rgba(245,158,11,.12)}
-.ocard-sp-pill.loss  {color:#ef4444;background:rgba(239,68,68,.10)}
-.ocard-sp-pill.seed15{color:#a78bfa;background:rgba(167,139,250,.10)}
-.ocard-stats{font-size:11px;color:#3a3a55;line-height:1.7}
-.ocard-stats b{color:#5a5a7a}
-.ocard-net{font-size:20px;font-weight:800;line-height:1;color:#3a3a55}
-.ocard-net.pos{color:#22c55e}
-.ocard-netlabel{font-size:8px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase}
+/* owner header — single tight line */
+.ocard-hdr{
+  display:flex;align-items:center;gap:0;
+  padding:7px 12px 6px;
+  flex-wrap:nowrap;overflow:hidden;
+}
+.ocard-name{font-size:14px;font-weight:800;color:var(--oc);line-height:1;letter-spacing:-.2px;white-space:nowrap;flex-shrink:0}
+.ocard-hdr-sep{color:#252538;font-size:10px;margin:0 5px;flex-shrink:0}
+.ocard-hdr-meta{font-size:9px;color:#3a3a55;white-space:nowrap;flex-shrink:0}
+.ocard-hdr-meta b{font-weight:700;color:#4a4a66}
+.ocard-hdr-right{margin-left:auto;display:flex;align-items:center;gap:4px;flex-shrink:0}
+.ocard-sp-pill{font-size:7px;font-weight:700;border-radius:20px;padding:1px 5px;letter-spacing:.2px;white-space:nowrap;border:1px solid transparent}
+.ocard-sp-pill.upset {color:#f59e0b;background:rgba(245,158,11,.12);border-color:rgba(245,158,11,.3)}
+.ocard-sp-pill.loss  {color:#ef4444;background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.3)}
+.ocard-sp-pill.seed15{color:#a78bfa;background:rgba(167,139,250,.12);border-color:rgba(167,139,250,.3)}
 
 /* ── TEAMS tab chip rows ─────────────────────────────── */
 .ocard-teams{
-  padding:10px 14px 12px;
+  padding:6px 12px 8px;
   border-top:1px solid #16161f;
-  display:flex;flex-direction:column;gap:7px;
+  display:flex;flex-direction:column;gap:5px;
 }
-.ocard-alive-row{display:flex;flex-wrap:wrap;gap:5px;align-items:flex-start;padding-bottom:1px;}
+.ocard-alive-row{display:flex;flex-wrap:wrap;gap:4px;align-items:flex-start;}
 
 /* alive chip — mirrors .stand-team-chip but slightly brighter */
 .tchip{
@@ -146,9 +146,9 @@ html,body{
 
 /* ── lost line — plain text, no chips ───────────────── */
 .ocard-lost-row{
-  font-size:9px;color:#2e2e45;line-height:1.6;
+  font-size:9px;color:#2e2e45;line-height:1.5;
   border-top:1px solid #14141e;
-  padding-top:7px;margin-top:1px;
+  padding-top:5px;margin-top:0;
 }
 .ocard-lost-lbl{font-weight:700;letter-spacing:.6px;text-transform:uppercase;margin-right:5px;color:#282838}
 .ocard-lost-sep{color:#222232}
@@ -160,7 +160,7 @@ html,body{
 /* ── Scoring breakdown toggle ───────────────────────── */
 .sb-toggle{
   display:flex;align-items:center;justify-content:center;gap:5px;
-  width:100%;padding:8px 14px;
+  width:100%;padding:6px 12px;
   border:none;background:none;
   border-top:1px solid #14141e;
   font-size:9px;font-weight:700;letter-spacing:1px;color:#2e2e48;
@@ -386,39 +386,7 @@ html,body{
 /* ══════════════════════════════════════════════════════
    STANDINGS TAB
 ══════════════════════════════════════════════════════ */
-.stand-list{display:flex;flex-direction:column;gap:8px;padding-bottom:16px}
-.stand-card{
-  background:#111119;border-radius:14px;
-  padding:13px 14px 12px;
-  border:1px solid #1a1a27;
-  border-left:3px solid var(--oc);
-}
-.stand-card-hdr{display:flex;align-items:center;gap:11px}
-.stand-rank{
-  font-size:20px;font-weight:800;color:#1e1e30;
-  width:28px;text-align:center;flex-shrink:0;line-height:1;
-}
-.stand-rank.podium{color:var(--oc);opacity:.5}
-.stand-info{flex:1;min-width:0}
-.stand-row1{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
-.stand-name{font-size:15px;font-weight:800;color:var(--oc);line-height:1}
-.stand-net{font-size:17px;font-weight:800;line-height:1;color:#3a3a55;white-space:nowrap}
-.stand-net.pos{color:#22c55e}
-.stand-row2{display:flex;align-items:center;justify-content:space-between;margin-top:5px;gap:8px}
-.stand-earned-lbl{font-size:10px;color:#32324a;white-space:nowrap}
-.stand-insight{font-size:10px;color:#44446a;text-align:right;white-space:nowrap}
-.stand-insight .upside{font-size:11px;font-weight:800;color:#22c55e}
-.stand-insight .alive{font-weight:600;color:#44446a}
-.stand-teams{display:flex;gap:5px;flex-wrap:wrap;margin-top:10px;padding-top:9px;border-top:1px solid #17172a}
-.stand-team-chip{
-  display:flex;align-items:center;gap:4px;
-  background:#161625;border-radius:6px;padding:3px 6px 3px 4px;
-}
-.stand-chip-logo{width:18px;height:18px;border-radius:4px;object-fit:contain;background:#1a1a28;flex-shrink:0}
-.stand-chip-logo-fb{width:18px;height:18px;border-radius:4px;background:#1a1a28;display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:800;color:#34344a;flex-shrink:0}
-.stand-chip-name{font-size:9px;color:#5a5a7a;font-weight:500}
-.stand-chip-name.earn{color:#4ade80}
-.stand-chip-live{width:5px;height:5px;border-radius:50%;background:#f59e0b;animation:pulse 1.2s ease-in-out infinite;flex-shrink:0}
+
 
 /* ══════════════════════════════════════════════════════
    PAYOUTS TAB
@@ -495,13 +463,7 @@ html,body{
       <div class="owner-list" id="owner-list"></div>
     </div>
 
-    <!-- Standings panel -->
-    <div class="panel" id="panel-standings">
-      <div class="sec-label">Leaderboard</div>
-      <div class="stand-list" id="stand-list"></div>
-    </div>
-
-    <!-- Payouts panel -->
+<!-- Payouts panel -->
     <div class="panel" id="panel-payouts">
       <div class="sec-label">Prize Breakdown · $27,160 Total</div>
       <div class="pay-list" id="pay-list"></div>
@@ -518,11 +480,7 @@ html,body{
       <span class="nav-icon">📋</span>
       <span class="nav-label">Teams</span>
     </button>
-    <button class="nav-btn" onclick="switchTab('standings',this)">
-      <span class="nav-icon">🏆</span>
-      <span class="nav-label">Standings</span>
-    </button>
-    <button class="nav-btn" onclick="switchTab('payouts',this)">
+<button class="nav-btn" onclick="switchTab('payouts',this)">
       <span class="nav-icon">💰</span>
       <span class="nav-label">Payouts</span>
     </button>
@@ -1201,6 +1159,19 @@ function toggleScoring(oid) {
   btn.classList.toggle('open');
 }
 
+
+/* Human-readable advancement label */
+function teamAdvLabel(t) {
+  if(t.wonNCG) return 'Champion';
+  if(t.wonF4)  return 'In Finals';
+  if(t.wonE8)  return 'In Final Four';
+  if(t.wonS16) return 'In Elite 8';
+  if(t.wonR32) return 'In Sweet 16';
+  if(t.wonR1)  return 'In Round of 32';
+  return 'In Round of 64';
+}
+
+
 function buildScoringBreakdown(oid) {
   var r1pp  = getR1PerTeam();
   var s16pp = computeS16PerTeam();
@@ -1371,28 +1342,24 @@ function renderTeams() {
     var ownsLossT  = sp.lossWinners   && sp.lossWinners.indexOf(oid)>-1;
     var ownsUpsetT = sp.upsetWinners  && sp.upsetWinners.indexOf(oid)>-1;
     var owns1516T  = sp.seed15Winners && sp.seed15Winners.indexOf(oid)>-1;
-    var spPills = (ownsUpsetT ? '<span class="ocard-sp-pill upset">⚡ Upset</span>'  : '')
-                + (ownsLossT  ? '<span class="ocard-sp-pill loss">📉 Loss</span>'    : '')
-                + (owns1516T  ? '<span class="ocard-sp-pill seed15">🏅 15/16</span>' : '');
+    var spPills = (ownsUpsetT ? '<span class="ocard-sp-pill upset">⚡ Biggest Upset · +$'+c(POTS.upset/sp.upsetWinners.length)+'</span>'  : '')
+                + (ownsLossT  ? '<span class="ocard-sp-pill loss">📉 Biggest Loss · +$'+c(POTS.loss/sp.lossWinners.length)+'</span>'    : '')
+                + (owns1516T  ? '<span class="ocard-sp-pill seed15">🏅 Best 15/16 Seed · +$'+c(POTS.seed15/sp.seed15Winners.length)+'</span>' : '');
 
+    var netStr = (net>=0?'+$':'-$')+c(Math.abs(net));
+    var earnedStr = earned>0 ? '<b style="color:var(--oc)">+$'+c(earned)+'</b> earned · ' : '';
     return '<div class="ocard'+(hasLive?' has-live':'')+'" style="--oc:'+o.color+'">'
       + '<div class="ocard-hdr">'
-        + '<div class="ocard-row1">'
-          + '<div style="display:flex;align-items:center;flex-wrap:wrap;gap:0">'
-            + '<div class="ocard-name">'+o.name+'</div>'
-            + '<span class="ocard-alive-pill">'+aliveCount+' alive</span>'
-            + spPills
-          + '</div>'
-          + '<div class="'+netCls+'">'+netStr+'</div>'
-        + '</div>'
-        + '<div class="ocard-row2">'
-          + '<div class="ocard-stats">'
-            + (earned>0 ? '<b style="color:#4ade80">+$'+c(earned)+'</b> earned · ' : '')
-            + '<b style="color:#ef4444">-$'+c(o.paid)+'</b> spent'
-          + '</div>'
-          + '<div class="ocard-netlabel" style="color:'+o.color+'">NET</div>'
+        + '<div class="ocard-name">'+o.name+'</div>'
+        + '<span class="ocard-hdr-sep">·</span>'
+        + '<span class="ocard-hdr-meta">'+aliveCount+' remaining</span>'
+        + '<span class="ocard-hdr-sep">·</span>'
+        + '<span class="ocard-hdr-meta">'+earnedStr+'<b>$'+c(o.paid)+'</b> spent</span>'
+        + '<div class="ocard-hdr-right">'
+          + '<span style="font-size:13px;font-weight:800;color:var(--oc);white-space:nowrap">'+netStr+'</span>'
         + '</div>'
       + '</div>'
+      + (spPills ? '<div style="display:flex;flex-wrap:wrap;gap:4px;padding:0 12px 6px">'+spPills+'</div>' : '')
       + '<div class="ocard-teams">'
         + '<div class="ocard-alive-row">'+aliveChips+'</div>'
         + lostRow
@@ -1598,146 +1565,6 @@ function renderGames() {
    RENDER — STANDINGS
 ═══════════════════════════════════════════════════════ */
 
-function renderStandings() {
-  var el = document.getElementById('stand-list');
-  if(!el) return;
-
-  var owners = Object.keys(OWNERS).map(function(oid){
-    return {oid:oid,o:OWNERS[oid],earned:ownerEarned(oid),net:ownerNet(oid)};
-  }).sort(function(a,b){ return b.net-a.net; });
-
-  el.innerHTML = owners.map(function(item,i){
-    var oid=item.oid, o=item.o, net=item.net, earned=item.earned;
-    var netCls = net>=0?'stand-net pos':'stand-net';
-    var netStr = (net>=0?'+$':'-$')+c(Math.abs(net));
-
-    var myTeams = TEAMS.filter(function(t){ return t.owner===oid && t.status!=='lost'; })
-      .sort(function(a,b){
-        if(a.status==='live'&&b.status!=='live') return -1;
-        if(b.status==='live'&&a.status!=='live') return 1;
-        return a.seed-b.seed;
-      });
-
-    var sp = computeSidePots();
-    var ownsLoss  = sp.lossWinners  && sp.lossWinners.indexOf(oid)>-1;
-    var ownsUpset = sp.upsetWinners && sp.upsetWinners.indexOf(oid)>-1;
-    var owns1516  = sp.seed15Winners && sp.seed15Winners.indexOf(oid)>-1;
-
-    /* include lost teams that won a side pot so they still appear in the chip row */
-    var sidePotTeams = TEAMS.filter(function(t){
-      if(t.owner!==oid || t.status!=='lost') return false;
-      return (sp.lossTeams&&sp.lossTeams.indexOf(t.name)>-1)
-          || (sp.upsetTeams&&sp.upsetTeams.indexOf(t.name)>-1)
-          || (sp.seed15Teams&&sp.seed15Teams.indexOf(t.name)>-1);
-    });
-    var allChipTeams = myTeams.concat(sidePotTeams);
-
-    var chips = allChipTeams.map(function(t){
-      var isLive=t.status==='live';
-      var isBigLoss  =(sp.lossTeams   && sp.lossTeams.indexOf(t.name)>-1);
-      var isUpsetLead=(sp.upsetTeams  && sp.upsetTeams.indexOf(t.name)>-1);
-      var is1516Win  =(sp.seed15Teams && sp.seed15Teams.indexOf(t.name)>-1);
-      var te=teamEarned(t);
-      var logoSrc=t.logo||LOGOS[t.name]||'';
-      var logoHtml = logoSrc
-        ? '<img src="'+logoSrc+'" class="stand-chip-logo" onerror="this.style.display=\'none\'">'
-        : '<div class="stand-chip-logo-fb">'+t.seed+'</div>';
-      var liveIcon = isLive ? '<div class="stand-chip-live"></div>' : '';
-      var nm = t.name.replace('Saint ','St. ').replace('Northern ','N. ');
-      if(nm.length>10) nm=nm.substring(0,10)+'…';
-      var nameCls = te>0?'stand-chip-name earn':'stand-chip-name';
-      var lossBadge   = isBigLoss   ? '<span style="font-size:7px;font-weight:800;color:#ef4444;margin-left:3px">📉</span>' : '';
-      var upsetBadge  = isUpsetLead ? '<span style="font-size:7px;font-weight:800;color:#f59e0b;margin-left:3px">⚡</span>' : '';
-      var seed15Badge = is1516Win   ? '<span style="font-size:7px;font-weight:800;color:#a78bfa;margin-left:3px">🏅</span>' : '';
-      return '<div class="stand-team-chip">'+liveIcon+logoHtml+'<span class="'+nameCls+'">#'+t.seed+' '+nm+'</span>'+lossBadge+upsetBadge+seed15Badge+'</div>';
-    }).join('');
-
-    /* side pot badges on owner card */
-    var lossBadgeCard  = ownsLoss
-      ? '<div class="ocard-loss-badge">📉 Biggest R1 Loss · +$'+c(POTS.loss)+'</div>'
-      : '';
-    var upsetBadgeCard = ownsUpset
-      ? '<div class="ocard-loss-badge" style="color:#f59e0b;background:#1a1000;border-color:rgba(245,158,11,.2)">⚡ Biggest Upset · +$'+c(POTS.upset)+' (leader)</div>'
-      : '';
-    var seed15BadgeCard = owns1516
-      ? '<div class="ocard-loss-badge" style="color:#a78bfa;background:#0e0a1a;border-color:rgba(167,139,250,.2)">🏅 Best 15/16 · +$'+c(POTS.seed15)+'</div>'
-      : '';
-
-    /* Round upside: keyed to the current active tournament round — one pot at a time */
-    var aliveCount = myTeams.filter(function(t){ return t.status!=='lost'; }).length;
-    var cr = getCurrentRound();
-    var insightHtml = '';
-    (function(){
-      /* During R64 or R32: show S16 upside.
-         Per-team value: project POTS.s16 across all seeds 4+ still alive (≤16),
-         so the denominator reflects the full field, not just early winners.
-         Candidates: only teams that haven't yet locked in S16 (not wonR32). */
-      if(cr==='R64'||cr==='R32'){
-        var allS16Eligible = TEAMS.filter(function(t){ return t.seed>=4 && t.status!=='lost'; });
-        var projected = Math.min(allS16Eligible.length, 16);
-        var s16pp2 = projected>0 ? Math.ceil(POTS.s16/projected) : 0;
-        var cands = myTeams.filter(function(t){ return t.seed>=4 && t.status!=='lost' && !t.wonR32; });
-        if(cands.length>0 && s16pp2>0){
-          insightHtml = 'S16 upside <span class="upside">+$'+c(cands.length*s16pp2)+'*</span>';
-          return;
-        }
-      }
-      /* During S16: show E8 upside. Project across all top-3 still alive;
-         only count those who haven't yet locked in E8 (not wonS16). */
-      if(cr==='S16'){
-        var allE8Eligible = TEAMS.filter(function(t){ return t.top3 && t.status!=='lost'; });
-        var e8pp2 = allE8Eligible.length>0 ? Math.ceil(POTS.e8/allE8Eligible.length) : 0;
-        var cands = myTeams.filter(function(t){ return t.top3 && t.status!=='lost' && !t.wonS16; });
-        if(cands.length>0 && e8pp2>0){
-          insightHtml = 'E8 upside <span class="upside">+$'+c(cands.length*e8pp2)+'</span>';
-          return;
-        }
-      }
-      /* During E8: show F4 upside for any alive team */
-      if(cr==='E8'){
-        var cands = myTeams.filter(function(t){ return t.status!=='lost'; });
-        if(cands.length>0){
-          insightHtml = 'F4 upside <span class="upside">+$'+c(cands.length*POTS.f4)+'</span>';
-          return;
-        }
-      }
-      /* During F4: show Finals+Champ upside */
-      if(cr==='F4'){
-        var cands = myTeams.filter(function(t){ return t.status!=='lost'; });
-        if(cands.length>0){
-          insightHtml = 'Finals upside <span class="upside">+$'+c(cands.length*(POTS.finals+POTS.champ))+'</span>';
-          return;
-        }
-      }
-      /* Fallback: just alive count or eliminated */
-      if(aliveCount>0){
-        insightHtml = '<span class="alive">'+aliveCount+' team'+(aliveCount>1?'s':'')+' alive</span>';
-      } else {
-        insightHtml = '<span class="alive">eliminated</span>';
-      }
-    })();
-
-    var rankCls = 'stand-rank'+(i<3?' podium':'');
-    return '<div class="stand-card" style="--oc:'+o.color+'">'
-      + '<div class="stand-card-hdr">'
-        + '<div class="'+rankCls+'">'+(i+1)+'</div>'
-        + '<div class="stand-info">'
-          + '<div class="stand-row1">'
-            + '<div class="stand-name">'+o.name+'</div>'
-            + '<div class="'+netCls+'">'+netStr+'</div>'
-          + '</div>'
-          + '<div class="stand-row2">'
-            + '<div class="stand-earned-lbl">+$'+c(earned)+' earned · $'+c(o.paid)+' spent</div>'
-            + '<div class="stand-insight">'+insightHtml+'</div>'
-          + '</div>'
-        + '</div>'
-      + '</div>'
-      + (lossBadgeCard||upsetBadgeCard||seed15BadgeCard
-          ? '<div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:5px">'+lossBadgeCard+upsetBadgeCard+seed15BadgeCard+'</div>' : '')
-      + '<div class="stand-teams">'+chips+'</div>'
-    + '</div>';
-  }).join('');
-}
 
 /* ═══════════════════════════════════════════════════════
    RENDER — PAYOUTS
@@ -2113,7 +1940,6 @@ function renderAll() {
   if(rt) rt.textContent=roundLabel+(liveNow?' · Live':'');
   renderTeams();
   renderGames();
-  renderStandings();
   renderPayouts();
 }
 
