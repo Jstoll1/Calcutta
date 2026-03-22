@@ -384,13 +384,96 @@ html,body{
       <span class="nav-icon">💰</span>
       <span class="nav-label">Payouts</span>
     </button>
+    <button class="nav-btn" onclick="openFeedback()">
+      <span class="nav-icon">💬</span>
+      <span class="nav-label">Feedback</span>
+    </button>
   </nav>
+</div>
+
+<!-- FEEDBACK MODAL -->
+<div id="feedback-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;align-items:center;justify-content:center;padding:20px">
+  <div style="background:#0f0f1e;border:1px solid #1e1e35;border-radius:16px;width:100%;max-width:380px;padding:24px;box-sizing:border-box">
+    <div style="position:relative;text-align:center;margin-bottom:20px">
+      <button onclick="closeFeedback()" style="position:absolute;right:0;top:0;background:none;border:none;color:#3a3a58;font-size:20px;cursor:pointer;line-height:1;padding:0">×</button>
+      <div style="font-size:12px;font-weight:700;color:#e2e2ef;letter-spacing:.2px;white-space:nowrap">Share feedback, payout corrections, or requests</div>
+    </div>
+    <div id="feedback-form-wrap">
+      <input id="fb-name" type="text" placeholder="Your name (optional)"
+        style="width:100%;box-sizing:border-box;background:#161625;border:1px solid #1e1e35;border-radius:8px;color:#c0c0d8;font-size:13px;padding:10px 12px;margin-bottom:10px;outline:none">
+      <textarea id="fb-msg" placeholder="What's on your mind?" rows="4"
+        style="width:100%;box-sizing:border-box;background:#161625;border:1px solid #1e1e35;border-radius:8px;color:#c0c0d8;font-size:13px;padding:10px 12px;resize:vertical;outline:none;font-family:inherit"></textarea>
+      <div id="fb-error" style="display:none;color:#ef4444;font-size:11px;margin-top:6px"></div>
+      <button onclick="submitFeedback()"
+        style="margin-top:12px;width:100%;background:#f59e0b;border:none;border-radius:8px;color:#0a0a14;font-size:13px;font-weight:700;padding:11px;cursor:pointer;letter-spacing:.3px">
+        Send →
+      </button>
+    </div>
+    <div id="feedback-success" style="display:none;text-align:center;padding:12px 0">
+      <div style="font-size:28px;margin-bottom:10px">✅</div>
+      <div style="color:#4ade80;font-size:14px;font-weight:600">Sent</div>
+    </div>
+  </div>
 </div>
 
 <script>
 /* ═══════════════════════════════════════════════════════
    DATA — identical to v2 source of truth
 ═══════════════════════════════════════════════════════ */
+
+/* ── FEEDBACK (Formspree) ─────────────────────────────
+   1. Go to https://formspree.io → sign up free
+   2. Click "New Form", set email to jake.stoll@abridge.com
+   3. Copy the 8-char form ID and paste it below           */
+var FORMSPREE_ID = 'mdawrkzg';
+
+function openFeedback() {
+  var ov = document.getElementById('feedback-overlay');
+  ov.style.display = 'flex';
+  document.getElementById('feedback-form-wrap').style.display = 'block';
+  document.getElementById('feedback-success').style.display = 'none';
+  document.getElementById('fb-error').style.display = 'none';
+  document.getElementById('fb-msg').value = '';
+}
+function closeFeedback() {
+  document.getElementById('feedback-overlay').style.display = 'none';
+}
+function submitFeedback() {
+  var msg = (document.getElementById('fb-msg').value || '').trim();
+  var name = (document.getElementById('fb-name').value || '').trim();
+  var errEl = document.getElementById('fb-error');
+  if(!msg) { errEl.textContent = 'Please enter a message.'; errEl.style.display='block'; return; }
+  errEl.style.display = 'none';
+  if(FORMSPREE_ID === 'YOUR_FORM_ID') {
+    errEl.textContent = 'Form not configured yet — see FORMSPREE_ID in the code.';
+    errEl.style.display = 'block'; return;
+  }
+  var btn = document.querySelector('#feedback-form-wrap button');
+  btn.textContent = 'Sending…'; btn.disabled = true;
+  fetch('https://formspree.io/f/' + FORMSPREE_ID, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+    body: JSON.stringify({ name: name || 'Anonymous', message: msg })
+  }).then(function(r){ return r.json(); }).then(function(data){
+    if(data.ok) {
+      document.getElementById('feedback-form-wrap').style.display = 'none';
+      document.getElementById('feedback-success').style.display = 'block';
+      setTimeout(closeFeedback, 2500);
+    } else {
+      errEl.textContent = 'Something went wrong. Try again.'; errEl.style.display='block';
+      btn.textContent = 'Send →'; btn.disabled = false;
+    }
+  }).catch(function(){
+    errEl.textContent = 'Network error. Check connection and try again.';
+    errEl.style.display = 'block'; btn.textContent = 'Send →'; btn.disabled = false;
+  });
+}
+/* close overlay on backdrop click */
+document.addEventListener('DOMContentLoaded', function(){
+  document.getElementById('feedback-overlay').addEventListener('click', function(e){
+    if(e.target === this) closeFeedback();
+  });
+});
 
 var TOTAL_POT = 27160;
 
@@ -1180,12 +1263,14 @@ function renderGames() {
     return '';
   }
 
-  var s16NoteSuffix = s16pp>0 ? '<span style="margin-left:auto;display:inline-block;text-align:right;font-weight:500;letter-spacing:.2px;text-transform:none;font-size:9px;line-height:1.5;color:#7070aa;background:rgba(112,112,170,.1);border:1px solid rgba(112,112,170,.2);border-radius:6px;padding:2px 7px">* S16 payouts variable<br>on eligible seeds</span>' : '';
+  var s16NoteHtml = s16pp>0 ? '<span style="margin-left:auto;display:inline-block;text-align:right;font-weight:500;letter-spacing:.2px;text-transform:none;font-size:9px;line-height:1.5;color:#7070aa;background:rgba(112,112,170,.1);border:1px solid rgba(112,112,170,.2);border-radius:6px;padding:2px 7px">* S16 payouts variable<br>on eligible seeds</span>' : '';
+  var s16NoteShown = false; /* only show once — in the first R32 section */
 
   /* LIVE */
   if(liveGames.length) {
     var liveHasR32 = liveGames.some(function(g){return g.round==='R32';});
-    html += '<div class="games-section"><div class="games-sec-hdr"><span class="live-dot"></span>LIVE NOW'+(liveHasR32?s16NoteSuffix:'')+'</div><div class="game-list">';
+    var liveNote = (liveHasR32 && !s16NoteShown) ? (s16NoteShown=true, s16NoteHtml) : '';
+    html += '<div class="games-section"><div class="games-sec-hdr"><span class="live-dot"></span>LIVE NOW'+liveNote+'</div><div class="game-list">';
     liveGames.forEach(function(g){
       var t1=g.t1, t2=g.t2;
       html += '<div class="mcard live">'
@@ -1211,7 +1296,8 @@ function renderGames() {
     Object.keys(byDate).sort().forEach(function(d){
       var lbl = d==='unknown'?'UPCOMING':dateSectionLabel(d);
       var isR32Date = knownRoundDates[d]==='R32';
-      html += '<div class="games-section"><div class="games-sec-hdr">'+lbl+(isR32Date?s16NoteSuffix:'')+'</div><div class="game-list">';
+      var dateNote = (isR32Date && !s16NoteShown) ? (s16NoteShown=true, s16NoteHtml) : '';
+      html += '<div class="games-section"><div class="games-sec-hdr">'+lbl+dateNote+'</div><div class="game-list">';
       byDate[d].forEach(function(g){
         var t1=g.t1,t2=g.t2;
         html += '<div class="mcard">'
