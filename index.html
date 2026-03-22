@@ -1229,7 +1229,7 @@ function buildScoringBreakdown(oid) {
   }
 
   var footnote = hasVariableS16
-    ? '<div class="sb-footnote">* S16 rate pending final R32 results</div>'
+    ? '<div class="sb-footnote">* S16 rate pending R32 completion</div>'
     : '';
 
   return '<div class="sb-wrap" id="sb-'+oid+'">'
@@ -1476,7 +1476,7 @@ function renderGames() {
     return '';
   }
 
-  var s16NoteHtml = s16pp>0 ? '<span style="margin-left:auto;display:inline-block;text-align:right;font-weight:500;letter-spacing:.2px;text-transform:none;font-size:9px;line-height:1.5;color:#7070aa;background:rgba(112,112,170,.1);border:1px solid rgba(112,112,170,.2);border-radius:6px;padding:2px 7px">* S16 payouts variable<br>on eligible seeds</span>' : '';
+  var s16NoteHtml = s16pp>0 ? '<span style="margin-left:auto;display:inline-block;text-align:right;font-weight:500;letter-spacing:.2px;text-transform:none;font-size:9px;line-height:1.5;color:#7070aa;background:rgba(112,112,170,.1);border:1px solid rgba(112,112,170,.2);border-radius:6px;padding:2px 7px">* S16 rate pending R32</span>' : '';
   var s16NoteShown = false; /* only show once — in the first R32 section */
 
   /* LIVE */
