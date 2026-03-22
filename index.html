@@ -189,7 +189,7 @@ html,body{
 .sb-row{
   display:flex;align-items:center;
   padding:2px 0 2px 21px;
-  font-size:10px;
+  font-size:10px;gap:8px;
 }
 .sb-pot{
   min-width:36px;font-weight:700;letter-spacing:.5px;
@@ -1124,12 +1124,12 @@ function buildScoringBreakdown(oid) {
   /* Build per-team rows — confirmed earnings only */
   var teamRows = myTeams.map(function(t) {
     var rows = [];
-    if(t.r1eligible && t.wonR1)  rows.push({pot:'R1',  desc:'Won R64',          amt:'+$'+c(r1pp)});
-    if(t.seed>=4   && t.wonR32)  rows.push({pot:'S16', desc:'Won R32',           amt:'+$'+c(s16pp)+(hasVariableS16?'*':'')});
-    if(t.top3      && t.wonS16)  rows.push({pot:'E8',  desc:'Won S16',           amt:'+$'+c(e8pp)});
-    if(t.wonE8)                  rows.push({pot:'F4',  desc:'Won E8',            amt:'+$'+c(POTS.f4)});
-    if(t.wonF4)                  rows.push({pot:'Finals', desc:'Won Final Four', amt:'+$'+c(POTS.finals)});
-    if(t.wonNCG)                 rows.push({pot:'Champ',  desc:'Won Championship',amt:'+$'+c(POTS.champ)});
+    if(t.r1eligible && t.wonR1)  rows.push({pot:'R1',     desc:'Won R64 · Advancing to R32',         amt:'+$'+c(r1pp)});
+    if(t.seed>=4   && t.wonR32)  rows.push({pot:'S16',    desc:'Won R32 · Advancing to Sweet Sixteen', amt:'+$'+c(s16pp)+(hasVariableS16?'*':'')});
+    if(t.top3      && t.wonS16)  rows.push({pot:'E8',     desc:'Won S16 · Advancing to Elite 8',     amt:'+$'+c(e8pp)});
+    if(t.wonE8)                  rows.push({pot:'F4',     desc:'Won E8 · Advancing to Final Four',   amt:'+$'+c(POTS.f4)});
+    if(t.wonF4)                  rows.push({pot:'Finals', desc:'Won F4 · Advancing to Finals',       amt:'+$'+c(POTS.finals)});
+    if(t.wonNCG)                 rows.push({pot:'Champ',  desc:'Won Championship',                   amt:'+$'+c(POTS.champ)});
     if(rows.length === 0) return '';
 
     var logoSrc = t.logo||LOGOS[t.name]||'';
@@ -1142,7 +1142,6 @@ function buildScoringBreakdown(oid) {
       + '<div class="sb-thdr">'+logoHtml+'<span class="sb-thdr-name"><span class="sb-thdr-seed">#'+t.seed+' </span>'+nm+'</span></div>'
       + rows.map(function(r){
           return '<div class="sb-row earned">'
-            + '<span class="sb-pot">'+r.pot+'</span>'
             + '<span class="sb-desc">'+r.desc+'</span>'
             + '<span class="sb-amt">'+r.amt+'</span>'
           + '</div>';
@@ -1168,7 +1167,7 @@ function buildScoringBreakdown(oid) {
   }
 
   var footnote = hasVariableS16
-    ? '<div class="sb-footnote">* S16 rate adjusts as R32 results are finalized — payout per team subject to change</div>'
+    ? '<div class="sb-footnote">* S16 rate pending final R32 results</div>'
     : '';
 
   return '<div class="sb-wrap" id="sb-'+oid+'">'
