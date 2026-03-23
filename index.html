@@ -1630,34 +1630,55 @@ function renderPayouts() {
     + '</div>'
 
     + (function(){
-        /* S16 card — confirmed winners + gray pending list */
-        var s16Pending = TEAMS.filter(function(t){ return t.seed>=4 && t.status!=='lost' && !t.wonR32; });
-        var totalPool  = Math.min(s16w.length + s16Pending.length, 16);
-        var s16Rate    = totalPool>0 ? Math.ceil(POTS.s16/totalPool) : 0;
-        var noteStr    = s16w.length
-          ? '~$'+c(s16Rate)+'/team* · '+s16w.length+' in, '+s16Pending.length+' pending'
-          : '~$'+c(s16Rate)+'/team* · '+s16Pending.length+' eligible still alive';
-        var confirmedHtml = s16w.length
-          ? '<div class="pcard-winners">'+s16w.map(function(t){
-              return '<div class="pwinner">'+pLogoImg(t)+'<span class="pw-name">'+t.name+'</span>'+ownerTag(t.owner,8)+'<span class="pw-amt">~$'+c(s16Rate)+'*</span></div>';
-            }).join('')+'</div>'
-          : '';
-        var pendingHtml = s16Pending.length
-          ? '<div style="display:flex;align-items:center;gap:8px;margin-top:10px">'
-              + '<div style="font-size:9px;font-weight:600;letter-spacing:1.5px;color:#2a2a3a;text-transform:uppercase;white-space:nowrap">Remaining eligible</div>'
-              + '<div style="flex:1;height:1px;background:#1a1a28"></div>'
-            + '</div>'
-            + '<div class="pcard-pending">'+s16Pending.sort(function(a,b){return a.seed-b.seed;}).map(function(t){
-                return '<div class="ppending">'+pLogoImg(t)+'<span class="pp-name">#'+t.seed+' '+t.name+'</span></div>';
+        var _pcr = getCurrentRound();
+        var _pr32Done = (_pcr==='S16'||_pcr==='E8'||_pcr==='F4'||_pcr==='NCG');
+        /* S16 card */
+        if(_pr32Done) {
+          /* R32 complete — locked rate, no ~ or * */
+          var lockedRate = s16w.length>0 ? Math.ceil(POTS.s16/s16w.length) : s16pp;
+          var noteStr = s16w.length
+            ? '$'+c(lockedRate)+'/team · '+s16w.length+' qualifiers'
+            : 'Rate locked — winners populating from ESPN';
+          var confirmedHtml = s16w.length
+            ? '<div class="pcard-winners">'+s16w.map(function(t){
+                return '<div class="pwinner">'+pLogoImg(t)+'<span class="pw-name">'+t.name+'</span>'+ownerTag(t.owner,8)+'<span class="pw-amt">+$'+c(lockedRate)+'</span></div>';
               }).join('')+'</div>'
-          : '';
-        return '<div class="pcard">'
-          + '<div class="pcard-hdr"><div><div class="pcard-name">Sweet 16</div><div class="pcard-pct">23% of pot · seeds 4–16 only · split equally</div></div><div class="pcard-amt">$'+c(POTS.s16)+'</div></div>'
-          + '<div class="pcard-note">'+noteStr+'</div>'
-          + confirmedHtml
-          + (s16Pending.length&&!confirmedHtml ? '<div class="pcard-tbd" style="margin-bottom:4px">Winners determined after Round of 32</div>' : '')
-          + pendingHtml
-          + '</div>';
+            : '<div class="pcard-tbd">Winners populating — reload to refresh</div>';
+          return '<div class="pcard">'
+            + '<div class="pcard-hdr"><div><div class="pcard-name">Sweet 16</div><div class="pcard-pct">23% of pot · seeds 4–16 only · split equally</div></div><div class="pcard-amt">$'+c(POTS.s16)+'</div></div>'
+            + '<div class="pcard-note">'+noteStr+'</div>'
+            + confirmedHtml
+            + '</div>';
+        } else {
+          /* R32 still in progress — show projection with ~ and pending list */
+          var s16Pending = TEAMS.filter(function(t){ return t.seed>=4 && t.status!=='lost' && !t.wonR32; });
+          var totalPool  = Math.min(s16w.length + s16Pending.length, 16);
+          var s16Rate    = totalPool>0 ? Math.ceil(POTS.s16/totalPool) : 0;
+          var noteStr2   = s16w.length
+            ? '~$'+c(s16Rate)+'/team* · '+s16w.length+' in, '+s16Pending.length+' pending'
+            : '~$'+c(s16Rate)+'/team* · '+s16Pending.length+' eligible still alive';
+          var confirmedHtml2 = s16w.length
+            ? '<div class="pcard-winners">'+s16w.map(function(t){
+                return '<div class="pwinner">'+pLogoImg(t)+'<span class="pw-name">'+t.name+'</span>'+ownerTag(t.owner,8)+'<span class="pw-amt">~$'+c(s16Rate)+'*</span></div>';
+              }).join('')+'</div>'
+            : '';
+          var pendingHtml = s16Pending.length
+            ? '<div style="display:flex;align-items:center;gap:8px;margin-top:10px">'
+                + '<div style="font-size:9px;font-weight:600;letter-spacing:1.5px;color:#2a2a3a;text-transform:uppercase;white-space:nowrap">Remaining eligible</div>'
+                + '<div style="flex:1;height:1px;background:#1a1a28"></div>'
+              + '</div>'
+              + '<div class="pcard-pending">'+s16Pending.sort(function(a,b){return a.seed-b.seed;}).map(function(t){
+                  return '<div class="ppending">'+pLogoImg(t)+'<span class="pp-name">#'+t.seed+' '+t.name+'</span></div>';
+                }).join('')+'</div>'
+            : '';
+          return '<div class="pcard">'
+            + '<div class="pcard-hdr"><div><div class="pcard-name">Sweet 16</div><div class="pcard-pct">23% of pot · seeds 4–16 only · split equally</div></div><div class="pcard-amt">$'+c(POTS.s16)+'</div></div>'
+            + '<div class="pcard-note">'+noteStr2+'</div>'
+            + confirmedHtml2
+            + (s16Pending.length&&!confirmedHtml2 ? '<div class="pcard-tbd" style="margin-bottom:4px">Winners determined after Round of 32</div>' : '')
+            + pendingHtml
+            + '</div>';
+        }
       })()
 
     + '<div class="pcard">'
@@ -1950,12 +1971,23 @@ function showSplash() {
           if(g.evDate) {
             try {
               var d=new Date(g.evDate);
-              timeStr = d.toLocaleTimeString('en-US',{timeZone:'America/New_York',hour:'numeric',minute:'2-digit',hour12:true})+' ET';
+              var dow=d.toLocaleDateString('en-US',{timeZone:'America/New_York',weekday:'short'});
+              var md =d.toLocaleDateString('en-US',{timeZone:'America/New_York',month:'numeric',day:'numeric'});
+              var tm =d.toLocaleTimeString('en-US',{timeZone:'America/New_York',hour:'numeric',minute:'2-digit',hour12:true});
+              timeStr = dow+' '+md+' · '+tm+' EDT';
             } catch(e){}
           }
           var detail = g.detail || timeStr;
+          function ownerDot(t) {
+            var o = t.matched && OWNERS[t.matched.owner];
+            return o ? '<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:'+o.color+';flex-shrink:0"></span>' : '';
+          }
           return '<div class="splash-game-pair">'
-            + '<div class="splash-game-row">'+logoEl(g.t1)+'<span class="splash-vs">vs</span>'+logoEl(g.t2)+'</div>'
+            + '<div class="splash-game-row">'
+              + '<div style="display:flex;flex-direction:column;align-items:center;gap:2px">'+logoEl(g.t1)+ownerDot(g.t1)+'</div>'
+              + '<span class="splash-vs">vs</span>'
+              + '<div style="display:flex;flex-direction:column;align-items:center;gap:2px">'+logoEl(g.t2)+ownerDot(g.t2)+'</div>'
+            + '</div>'
             + (detail?'<div class="splash-game-detail">'+detail+'</div>':'')
           + '</div>';
         }).join('')
@@ -1981,7 +2013,6 @@ function showSplash() {
       + (isLive
           ? '<div class="splash-section"><div class="splash-sec-lbl">Live Now</div><div class="splash-games">'+gamesHtml+'</div></div>'
           : upcomingS16Html)
-      + (updatesHtml ? '<div class="splash-updates"><ul class="splash-updates-list">'+updatesHtml+'</ul></div>' : '')
       + '<div class="splash-footer">'
         + '<button class="splash-dismiss" onclick="closeSplash()">Let\'s go →</button>'
       + '</div>'
