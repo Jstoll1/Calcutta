@@ -39,6 +39,8 @@ html,body{
   font-size:10px;font-weight:700;letter-spacing:1.5px;color:#e05252;
   text-transform:uppercase;white-space:nowrap;
 }
+.live-badge.complete{background:#0c1220;border-color:rgba(59,130,246,.35);color:#60a5fa}
+.live-badge.complete .live-dot{display:none}
 .live-dot{width:5px;height:5px;border-radius:50%;background:#e05252;animation:pulse 1.4s ease-in-out infinite;flex-shrink:0}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.2}}
 @keyframes amber-pulse{0%,100%{opacity:1}50%{opacity:.3}}
@@ -581,9 +583,9 @@ var TOTAL_POT = 27160;
 /* ── CHANGELOG — update manually, newest first, max 3 shown ──
    These appear in the splash modal under "Recent Updates".      */
 var CHANGELOG = [
-  'Added scoring breakdown to each owner card in Teams tab',
-  'S16 payout rate now stable during R32 — updates when round ends',
-  'Feedback form added — submit corrections or questions via 💬',
+  'Round of 32 complete — 16 teams advance to Sweet 16 (starts Mar 26)',
+  'R32 payouts locked — S16 per-team rate now confirmed',
+  'Side pot results confirmed: Biggest Loss, Biggest Upset, Best 15/16',
 ];
 
 var POTS = {
@@ -719,11 +721,21 @@ var CONFIRMED_ADV_TOP = [
   'UCLA','Miami'
 ];
 var CONFIRMED_LOST = [
+  /* R64 losers */
   'Georgia','Kennesaw St.','N. Dakota St.','Hofstra','Wisconsin','BYU',"Saint Mary's",'UNC','Ohio State','Akron',
   'Clemson','McNeese','Troy','Penn','Idaho','Prairie View/Lehigh',
   'SMU/Miami OH','Wright State','Santa Clara','Tennessee St.','UMBC/Howard',
   'Villanova','Hawaii','Missouri','Queens','Long Island',
-  'Northern Iowa','CA Baptist','S. Florida','UCF','Furman','Siena'
+  'Northern Iowa','CA Baptist','S. Florida','UCF','Furman','Siena',
+  /* R32 losers — fill in once R32 is complete */
+];
+
+/* Seeds 4-16 that WON Round of 32 → earn the S16 payout.
+   Mirror of CONFIRMED_R1 for the R32 round.
+   Fill this in once R32 results are confirmed; ESPN auto-detects but this
+   ensures correct payouts even before ESPN data loads. */
+var CONFIRMED_R32 = [
+  /* e.g. 'Nebraska','Vanderbilt','Kentucky','Miami' */
 ];
 
 /* ── CONFIRMED SIDE POT RESULTS ────────────────────────────
@@ -758,6 +770,7 @@ TEAMS.forEach(function(t) {
   if (CONFIRMED_LOST.indexOf(t.name) > -1)    t.status = 'lost';
   if (CONFIRMED_R1.indexOf(t.name) > -1)      { t.status = 'won'; t.wonR1 = true; }
   if (CONFIRMED_ADV_TOP.indexOf(t.name) > -1) t.status = 'won';
+  if (CONFIRMED_R32.indexOf(t.name) > -1)     { t.status = 'won'; t.wonR32 = true; }
 });
 
 /* ═══════════════════════════════════════════════════════
@@ -1110,10 +1123,12 @@ function fmtDate(ymd) {
 
 function startPolling() {
   function fetchAll() {
-    var today=toETDate(new Date().toISOString());
-    var yesterday=toETDate(new Date(Date.now()-86400000).toISOString());
-    var tomorrow=toETDate(new Date(Date.now()+86400000).toISOString());
-    var dates=[yesterday,today,tomorrow].filter(function(d,i,a){ return d&&a.indexOf(d)===i; });
+    /* Fetch past 5 days (covers full R64+R32) and next 7 days (covers upcoming S16/E8) */
+    var dates=[];
+    for(var offset=-5;offset<=7;offset++){
+      var d=toETDate(new Date(Date.now()+offset*86400000).toISOString());
+      if(d&&dates.indexOf(d)===-1) dates.push(d);
+    }
     Promise.all(dates.map(function(d){
       return fetch('https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?dates='+d.replace(/-/g,''))
         .then(function(r){return r.json();}).catch(function(){return null;});
@@ -1182,7 +1197,9 @@ function buildScoringBreakdown(oid) {
     .sort(function(a,b){ return a.seed-b.seed; });
 
   var hasS16Earned = myTeams.some(function(t){ return t.seed>=4 && t.wonR32; });
-  var hasVariableS16 = hasS16Earned && getS16Winners().length < 16;
+  var _cr = getCurrentRound();
+  var _r32Done = (_cr==='S16'||_cr==='E8'||_cr==='F4'||_cr==='NCG');
+  var hasVariableS16 = hasS16Earned && !_r32Done && getS16Winners().length < 16;
 
   /* Build per-team rows — confirmed earnings only */
   var teamRows = myTeams.map(function(t) {
@@ -1477,7 +1494,9 @@ function renderGames() {
     return '';
   }
 
-  var s16NoteHtml = s16pp>0 ? '<span style="margin-left:auto;display:inline-block;text-align:right;font-weight:500;letter-spacing:.2px;text-transform:none;font-size:9px;line-height:1.5;color:#7070aa;background:rgba(112,112,170,.1);border:1px solid rgba(112,112,170,.2);border-radius:6px;padding:2px 7px">* S16 rate pending R32</span>' : '';
+  var _gcr = getCurrentRound();
+  var _gr32Done = (_gcr==='S16'||_gcr==='E8'||_gcr==='F4'||_gcr==='NCG');
+  var s16NoteHtml = (!_gr32Done && s16pp>0) ? '<span style="margin-left:auto;display:inline-block;text-align:right;font-weight:500;letter-spacing:.2px;text-transform:none;font-size:9px;line-height:1.5;color:#7070aa;background:rgba(112,112,170,.1);border:1px solid rgba(112,112,170,.2);border-radius:6px;padding:2px 7px">* S16 rate pending R32</span>' : '';
   var s16NoteShown = false; /* only show once — in the first R32 section */
 
   /* LIVE */
@@ -1836,6 +1855,7 @@ function showSplash() {
   var cr = getCurrentRound();
   var roundFull = {'R64':'Round of 64','R32':'Round of 32','S16':'Sweet 16','E8':'Elite 8','F4':'Final Four','NCG':'Championship'}[cr]||cr;
   var isLive = liveGames.length > 0;
+  var hasUpcomingS16 = upcomingGames.some(function(g){ return g.round==='S16'; });
 
   /* Top 3 by net */
   var sorted = Object.keys(OWNERS).sort(function(a,b){ return ownerNet(b)-ownerNet(a); });
@@ -1896,16 +1916,62 @@ function showSplash() {
   _ups.sort(function(a,b){ return b.p-a.p; });
   var updatesHtml = _ups.slice(0,3).map(function(u){ return '<li>'+u.text+'</li>'; }).join('');
 
-  /* Round alert */
-  var alertHtml = isLive
-    ? '<div class="splash-alert"><div class="splash-alert-dot"></div>'+roundFull+' in progress — earnings subject to change as results finalize</div>'
-    : '';
+  /* Round alert / status banner */
+  var alertHtml = '';
+  if(isLive) {
+    alertHtml = '<div class="splash-alert"><div class="splash-alert-dot"></div>'+roundFull+' in progress — earnings subject to change as results finalize</div>';
+  } else if(cr==='S16' || hasUpcomingS16) {
+    /* Between rounds: R32 complete, S16 upcoming */
+    var s16Start = '';
+    if(upcomingGames.length) {
+      var s16Game = upcomingGames.find(function(g){ return g.round==='S16'; });
+      if(s16Game && s16Game.date) {
+        var months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        var p=s16Game.date.split('-');
+        s16Start = ' · starts '+months[parseInt(p[1],10)-1]+' '+parseInt(p[2],10);
+      }
+    }
+    alertHtml = '<div class="splash-alert" style="background:rgba(59,130,246,.07);border-color:rgba(59,130,246,.2);color:#3b82f6"><div class="splash-alert-dot" style="background:#3b82f6;animation:none"></div>Round of 32 complete — Sweet 16'+s16Start+'</div>';
+  }
+
+  /* Upcoming S16 games section (shown when not live) */
+  var upcomingS16Html = '';
+  if(!isLive && hasUpcomingS16) {
+    var s16Games = upcomingGames.filter(function(g){ return g.round==='S16'; });
+    upcomingS16Html = '<div class="splash-section"><div class="splash-sec-lbl">Sweet 16 · Up Next</div><div class="splash-games">'
+      + s16Games.slice(0,4).map(function(g){
+          function logoEl(t) {
+            var src = (t.matched&&(t.matched.logo||LOGOS[t.matched.name]))||'';
+            return src
+              ? '<img src="'+src+'" class="splash-logo" onerror="this.style.display=\'none\'">'
+              : '<div class="splash-logo-fb">'+(t.matched?t.matched.seed:'?')+'</div>';
+          }
+          var timeStr = '';
+          if(g.evDate) {
+            try {
+              var d=new Date(g.evDate);
+              timeStr = d.toLocaleTimeString('en-US',{timeZone:'America/New_York',hour:'numeric',minute:'2-digit',hour12:true})+' ET';
+            } catch(e){}
+          }
+          var detail = g.detail || timeStr;
+          return '<div class="splash-game-pair">'
+            + '<div class="splash-game-row">'+logoEl(g.t1)+'<span class="splash-vs">vs</span>'+logoEl(g.t2)+'</div>'
+            + (detail?'<div class="splash-game-detail">'+detail+'</div>':'')
+          + '</div>';
+        }).join('')
+    + '</div></div>';
+  }
+
+  var statusLine = isLive
+    ? roundFull.toUpperCase()+' · LIVE'
+    : (cr==='S16'||hasUpcomingS16) ? 'R32 COMPLETE · SWEET 16 UPCOMING'
+    : roundFull.toUpperCase();
 
   var html = '<div id="splash-overlay" onclick="if(event.target===this)closeSplash()">'
     + '<div id="splash-box">'
       + '<div class="splash-hdr">'
         + '<div class="splash-title">Calcutta 2026</div>'
-        + '<div class="splash-sub">MARCH MADNESS · $27,160 POT · '+roundFull.toUpperCase()+(isLive?' · LIVE':'')+'</div>'
+        + '<div class="splash-sub">MARCH MADNESS · $27,160 POT · '+statusLine+'</div>'
       + '</div>'
       + alertHtml
       + '<div class="splash-section">'
@@ -1914,7 +1980,7 @@ function showSplash() {
       + '</div>'
       + (isLive
           ? '<div class="splash-section"><div class="splash-sec-lbl">Live Now</div><div class="splash-games">'+gamesHtml+'</div></div>'
-          : '')
+          : upcomingS16Html)
       + (updatesHtml ? '<div class="splash-updates"><ul class="splash-updates-list">'+updatesHtml+'</ul></div>' : '')
       + '<div class="splash-footer">'
         + '<button class="splash-dismiss" onclick="closeSplash()">Let\'s go →</button>'
@@ -1936,9 +2002,29 @@ function closeSplash() {
 function renderAll() {
   var currentRound=getCurrentRound();
   var rt=document.getElementById('round-txt');
+  var pill=document.getElementById('round-pill');
   var liveNow=liveGames.length>0;
-  var roundLabel={'R64':'R64','R32':'R32','S16':'Sweet 16','E8':'Elite 8','F4':'Final Four','NCG':'Championship'}[currentRound]||currentRound;
-  if(rt) rt.textContent=roundLabel+(liveNow?' · Live':'');
+  var hasUpcoming=upcomingGames.length>0;
+
+  /* Human-readable labels for each round state */
+  var roundLabel={'R64':'Round of 64','R32':'Round of 32','S16':'Sweet 16','E8':'Elite 8','F4':'Final Four','NCG':'Championship'}[currentRound]||currentRound;
+
+  if(rt) {
+    if(liveNow) {
+      /* Games in progress — red pulsing badge */
+      rt.textContent=roundLabel+' · Live';
+      if(pill) pill.className='live-badge';
+    } else if(hasUpcoming) {
+      /* Upcoming games exist for this round — blue stable */
+      rt.textContent=roundLabel+' · Up Next';
+      if(pill) pill.className='live-badge complete';
+    } else {
+      /* Between rounds — show previous round as complete */
+      var prevLabel={'R64':'Round of 64 · Complete','R32':'Round of 32 · Complete','S16':'Sweet 16 · Complete','E8':'Elite 8 · Complete','F4':'Final Four · Complete','NCG':'Champion Crowned'}[currentRound]||roundLabel+' · Complete';
+      rt.textContent=prevLabel;
+      if(pill) pill.className='live-badge complete';
+    }
+  }
   renderTeams();
   renderGames();
   renderPayouts();
