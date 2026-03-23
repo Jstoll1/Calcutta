@@ -165,12 +165,12 @@ html,body{
   width:100%;padding:5px 11px;
   border:none;background:none;
   border-top:1px solid #14141e;
-  font-size:9px;font-weight:700;letter-spacing:1px;color:#2e2e48;
+  font-size:9px;font-weight:700;letter-spacing:1px;color:#7070a0;
   text-transform:uppercase;cursor:pointer;
   transition:color .15s;
 }
-.sb-toggle:hover{color:#5a5a7a}
-.sb-toggle.open{color:#5a5a88}
+.sb-toggle:hover{color:#9090c0}
+.sb-toggle.open{color:#9090c8}
 .sb-chevron{display:inline-block;transition:transform .2s;font-style:normal}
 .sb-toggle.open .sb-chevron{transform:rotate(180deg)}
 
@@ -185,8 +185,8 @@ html,body{
 }
 .sb-thdr-logo{width:16px;height:16px;border-radius:3px;object-fit:contain}
 .sb-thdr-logo-fb{width:16px;height:16px;border-radius:3px;background:#1a1a28;display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:800;color:#34344a}
-.sb-thdr-name{font-size:10px;font-weight:700;color:#4a4a68;letter-spacing:.2px}
-.sb-thdr-seed{color:#2e2e45;font-weight:500;margin-right:2px}
+.sb-thdr-name{font-size:10px;font-weight:700;color:#9090b8;letter-spacing:.2px}
+.sb-thdr-seed{color:#5a5a80;font-weight:500;margin-right:2px}
 
 .sb-row{
   display:flex;align-items:center;
@@ -195,13 +195,13 @@ html,body{
 }
 .sb-pot{
   min-width:36px;font-weight:700;letter-spacing:.5px;
-  font-size:8px;text-transform:uppercase;color:#2e2e45;
+  font-size:8px;text-transform:uppercase;color:#5a5a80;
 }
-.sb-desc{flex:1;color:#2e2e45}
-.sb-amt{font-weight:700;font-size:10px;color:#3a3a55;white-space:nowrap}
-.sb-row.earned .sb-desc{color:#4a6a50}
+.sb-desc{flex:1;color:#7070a0}
+.sb-amt{font-weight:700;font-size:10px;color:#8888b8;white-space:nowrap}
+.sb-row.earned .sb-desc{color:#6aaa74}
 .sb-row.earned .sb-amt{color:#4ade80}
-.sb-row.earned .sb-pot{color:#2d5c36}
+.sb-row.earned .sb-pot{color:#4a8a56}
 
 .sb-divider{
   border:none;border-top:1px solid #14141e;
@@ -471,6 +471,11 @@ html,body{
       <div class="sec-label">Prize Breakdown · $27,160 Total</div>
       <div class="pay-list" id="pay-list"></div>
     </div>
+
+    <!-- Bracket panel -->
+    <div class="panel" id="panel-bracket">
+      <div id="bracket-content" style="padding-bottom:20px"></div>
+    </div>
   </div>
 
   <!-- BOTTOM NAV -->
@@ -486,6 +491,10 @@ html,body{
 <button class="nav-btn" onclick="switchTab('payouts',this)">
       <span class="nav-icon">💰</span>
       <span class="nav-label">Payouts</span>
+    </button>
+    <button class="nav-btn" onclick="switchTab('bracket',this)">
+      <span class="nav-icon">🏆</span>
+      <span class="nav-label">Bracket</span>
     </button>
     <button class="nav-btn" onclick="openFeedback()">
       <span class="nav-icon">💬</span>
@@ -1860,6 +1869,205 @@ function switchTab(name, btn) {
 }
 
 /* ═══════════════════════════════════════════════════════
+   BRACKET TAB
+═══════════════════════════════════════════════════════ */
+
+/* S16 matchup tree — locked after R32 */
+var BRACKET_REGIONS = [
+  { name:'East',    reg:'East',  color:'#60b4ff', s16:[
+    { top:'Duke',         topSeed:1,  bot:"St. John's",  botSeed:5  },
+    { top:'Michigan St.', topSeed:3,  bot:'UConn',       botSeed:2  }
+  ]},
+  { name:'West',    reg:'West',  color:'#ff7070', s16:[
+    { top:'Arizona',      topSeed:1,  bot:'Arkansas',    botSeed:4  },
+    { top:'Purdue',       topSeed:2,  bot:'Texas',       botSeed:11 }
+  ]},
+  { name:'South',   reg:'South', color:'#5aedb5', s16:[
+    { top:'Illinois',     topSeed:3,  bot:'Iowa',        botSeed:9  },
+    { top:'Houston',      topSeed:2,  bot:'Nebraska',    botSeed:4  }
+  ]},
+  { name:'Midwest', reg:'MW',    color:'#ffd056', s16:[
+    { top:'Michigan',     topSeed:1,  bot:'Tennessee',   botSeed:6  },
+    { top:'Iowa State',   topSeed:2,  bot:'Alabama',     botSeed:4  }
+  ]}
+];
+
+/* Final Four pairings: South vs East, West vs Midwest */
+var F4_PAIRINGS = [
+  { a:'South', b:'East'    },
+  { a:'West',  b:'Midwest' }
+];
+
+/* ── Bracket helpers ──────────────────────────────── */
+function bktTeam(n) {
+  return TEAMS.find(function(t){ return t.name===n; })||null;
+}
+
+function bktFindGame(n1, n2) {
+  var all=completedGames.concat(liveGames,upcomingGames);
+  for(var i=0;i<all.length;i++){
+    var g=all[i];
+    var a=(g.t1.matched&&g.t1.matched.name)||'';
+    var b=(g.t2.matched&&g.t2.matched.name)||'';
+    if((a===n1&&b===n2)||(a===n2&&b===n1)) return g;
+  }
+  return null;
+}
+
+/* Who won E8/F4 in a given region (reg display name like 'East','Midwest') */
+function bktRegAdv(regName, flag) {
+  var r=regName==='Midwest'?'MW':regName;
+  return TEAMS.find(function(t){ return t.region===r&&t[flag]; })||null;
+}
+
+function bktOwnerCap(oid) {
+  var o=OWNERS[oid]; if(!o) return '';
+  return '<span style="background:'+o.color+';color:#000;font-size:7px;font-weight:800;padding:1px 4px;border-radius:20px;letter-spacing:.2px;white-space:nowrap;flex-shrink:0">'+o.name+'</span>';
+}
+
+/* One team row inside a game card.
+   round: 'S16'|'E8'|'F4'|'NCG' — determines which win flag to check */
+function bktRow(teamName, roundFlag, opponentName, sc) {
+  var t=bktTeam(teamName); if(!t) return '';
+  var opp=bktTeam(opponentName);
+  var oc=OWNERS[t.owner]?OWNERS[t.owner].color:'';
+  var logo=t.logo||LOGOS[t.name]||'';
+  var logoHtml=logo
+    ?'<img src="'+logo+'" style="width:18px;height:18px;border-radius:3px;object-fit:contain;flex-shrink:0" onerror="this.style.display=\'none\'">'
+    :'<div style="width:18px;height:18px;border-radius:3px;background:rgba(255,255,255,.04);display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:800;color:#444;flex-shrink:0">'+t.seed+'</div>';
+  /* Determine win/loss from the round-specific flag — prevents cross-round false positives */
+  var isWin=!!(t[roundFlag]);
+  var isLos=!!(opp&&opp[roundFlag]);
+  var nameColor=isLos?'#2a2a3a':isWin?'#fff':'#8888a8';
+  var decor=isLos?';text-decoration:line-through':'';
+  var scoreHtml=(isWin||isLos)&&sc!=null
+    ?'<span style="font-family:monospace;font-size:11px;font-weight:800;color:'+(isWin?'#fff':'#2a2a3a')+';flex-shrink:0;margin-left:2px">'+sc+'</span>'
+    :'';
+  return '<div style="display:flex;align-items:center;gap:6px;padding:4px 8px 4px '+(oc?'11px':'8px')+';position:relative;min-height:26px">'
+    +(oc?'<span style="position:absolute;left:0;top:3px;bottom:3px;width:3px;background:'+oc+';border-radius:2px"></span>':'')
+    +logoHtml
+    +'<span style="font-size:9px;color:#4a4a6a;flex-shrink:0;width:14px;text-align:right">'+t.seed+'</span>'
+    +'<span style="flex:1;font-size:12px;font-weight:'+(isWin?700:400)+';color:'+nameColor+';overflow:hidden;text-overflow:ellipsis;white-space:nowrap'+decor+'">'+t.name+'</span>'
+    +bktOwnerCap(t.owner)
+    +scoreHtml
+    +'</div>';
+}
+
+/* Game card for a matchup.
+   round: 'S16'|'E8'|'F4'|'NCG' — scopes win/loss flag */
+function bktCard(n1, n2, round) {
+  var flagMap={S16:'wonS16',E8:'wonE8',F4:'wonF4',NCG:'wonNCG'};
+  var flag=flagMap[round]||'wonS16';
+  var t1=bktTeam(n1), t2=bktTeam(n2);
+  var sc1=null, sc2=null, live=false, detail='', fin=false;
+
+  /* Pull scores / live state from ESPN */
+  var g=bktFindGame(n1,n2);
+  if(g){
+    var gt1=(g.t1.matched&&g.t1.matched.name)===n1?g.t1:g.t2;
+    var gt2=(g.t2.matched&&g.t2.matched.name)===n2?g.t2:g.t1;
+    sc1=gt1.score; sc2=gt2.score;
+    if(liveGames.indexOf(g)>-1){ live=true; detail=g.detail||'LIVE'; }
+    if(completedGames.indexOf(g)>-1) fin=true;
+  }
+  /* If no ESPN data but team flag set, treat as final */
+  if(!fin&&!live&&t1&&t2&&(t1[flag]||t2[flag])) fin=true;
+
+  var timeStr='';
+  if(!fin&&!live&&g&&g.evDate){
+    try{
+      var d=new Date(g.evDate);
+      var dow=d.toLocaleDateString('en-US',{timeZone:'America/New_York',weekday:'short'});
+      var md=d.toLocaleDateString('en-US',{timeZone:'America/New_York',month:'numeric',day:'numeric'});
+      var tm=d.toLocaleTimeString('en-US',{timeZone:'America/New_York',hour:'numeric',minute:'2-digit',hour12:true});
+      timeStr=dow+' '+md+' · '+tm+' ET';
+    }catch(e){}
+  }
+
+  var brd=live?'rgba(34,197,94,.3)':'rgba(255,255,255,.06)';
+  var shd=live?'box-shadow:0 0 8px rgba(34,197,94,.1);':'';
+  var statusColor=live?'#22c55e':fin?'#444466':'#333346';
+  var statusTxt=live?detail:fin?'FINAL':timeStr||'';
+
+  return '<div style="background:rgba(255,255,255,.03);border:1px solid '+brd+';border-radius:8px;overflow:hidden;'+shd+'">'
+    +bktRow(n1,flag,n2,sc1)
+    +'<div style="height:1px;background:rgba(255,255,255,.04);margin:0 8px"></div>'
+    +bktRow(n2,flag,n1,sc2)
+    +'<div style="padding:2px 8px 4px"><span style="font-size:9px;font-weight:700;color:'+statusColor+';letter-spacing:.5px">'+statusTxt+'</span></div>'
+    +'</div>';
+}
+
+/* Advancement slot — shows team advancing to next round, with owner capsule */
+function bktAdvSlot(teamName, label) {
+  var t=teamName?bktTeam(teamName):null;
+  var oc=t&&OWNERS[t.owner]?OWNERS[t.owner].color:null;
+  var logo=t?(t.logo||LOGOS[t.name]||''):'';
+  return '<div style="background:'+(oc?oc+'18':'rgba(255,255,255,.025)')+';border:1px solid '+(oc?oc+'40':'rgba(255,255,255,.06)')+';border-radius:8px;padding:6px 4px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;height:100%;min-height:52px;position:relative;overflow:hidden">'
+    +(oc?'<div style="position:absolute;top:0;left:0;right:0;height:2px;background:'+oc+'"></div>':'')
+    +'<span style="font-size:9px;font-weight:800;letter-spacing:1.5px;color:#5c5c72;text-transform:uppercase">'+label+'</span>'
+    +(t&&logo?'<img src="'+logo+'" style="width:16px;height:16px;object-fit:contain;border-radius:2px" onerror="this.style.display=\'none\'">':'')
+    +'<span style="font-size:10px;font-weight:700;color:'+(t?'#d0d0e8':'#2a2a3a')+';text-align:center;line-height:1.2;max-width:62px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+(t?t.name:'TBD')+'</span>'
+    +(t?'<div style="margin-top:1px">'+bktOwnerCap(t.owner)+'</div>':'')
+    +'</div>';
+}
+
+/* TBD placeholder (game not yet known) */
+function bktTBDSlot(label) {
+  return '<div style="background:rgba(255,255,255,.02);border:1px dashed rgba(255,255,255,.07);border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:10px 4px;min-height:52px">'
+    +'<span style="font-size:9px;font-weight:800;letter-spacing:1.5px;color:#5c5c72;text-transform:uppercase">'+label+'</span>'
+    +'<span style="font-size:10px;color:#2a2a3a">TBD</span>'
+    +'</div>';
+}
+
+/* Bracket connector — two games → one advancement slot */
+var BKT_CONNECTOR=
+  '<div style="width:14px;flex-shrink:0;position:relative;margin:12px 0">'
+    +'<div style="position:absolute;top:0;left:0;right:0;height:50%;border-top:1px solid #252535;border-right:1px solid #252535;border-radius:0 4px 0 0"></div>'
+    +'<div style="position:absolute;bottom:0;left:0;right:0;height:50%;border-bottom:1px solid #252535;border-right:1px solid #252535;border-radius:0 0 4px 0"></div>'
+  +'</div>';
+var BKT_LINE=
+  '<div style="width:14px;flex-shrink:0;display:flex;align-items:center;justify-content:center">'
+    +'<div style="width:14px;height:1px;background:#252535"></div>'
+  +'</div>';
+
+function renderBracket() {
+  var el=document.getElementById('bracket-content'); if(!el) return;
+  var html='<div style="padding-top:4px">';
+
+  /* ══ SWEET 16 — 4 regions, 2 games each ══════════════ */
+  html+='<div style="font-size:10px;font-weight:600;letter-spacing:2px;color:#3a3a55;text-transform:uppercase;margin-bottom:10px;padding-left:2px">Sweet 16</div>';
+
+  BRACKET_REGIONS.forEach(function(reg){
+    /* S16 winners (→ made E8) */
+    function s16W(p){
+      var ta=bktTeam(p.top), tb=bktTeam(p.bot);
+      if(ta&&ta.wonS16) return p.top;
+      if(tb&&tb.wonS16) return p.bot;
+      return null;
+    }
+    /* E8 winner (→ made F4) for whole region */
+    var f4Adv=bktRegAdv(reg.name,'wonE8');
+    /* Advancement slot: if E8 is done show F4 qualifier, else show E8 label */
+    var advSlotHtml=f4Adv?bktAdvSlot(f4Adv.name,'→ F4'):bktAdvSlot(null,'E8');
+
+    html+='<div style="margin-bottom:18px">'
+      +'<div style="font-size:10px;font-weight:700;color:'+reg.color+';letter-spacing:3px;text-transform:uppercase;margin-bottom:8px;padding-left:2px">'+reg.name+'</div>'
+      +'<div style="display:flex;align-items:stretch;gap:0">'
+        +'<div style="flex:1;display:flex;flex-direction:column;gap:4px">'
+          +bktCard(reg.s16[0].top, reg.s16[0].bot, 'S16')
+          +bktCard(reg.s16[1].top, reg.s16[1].bot, 'S16')
+        +'</div>'
+        +BKT_CONNECTOR
+        +'<div style="width:68px;flex-shrink:0;display:flex;align-items:center">'+advSlotHtml+'</div>'
+      +'</div>'
+    +'</div>';
+  });
+
+  html+='</div>'; /* close outer wrapper */
+  el.innerHTML=html;
+}
+
+/* ═══════════════════════════════════════════════════════
    RENDER ALL
 ═══════════════════════════════════════════════════════ */
 
@@ -2067,6 +2275,7 @@ function renderAll() {
   renderTeams();
   renderGames();
   renderPayouts();
+  renderBracket();
 }
 
 /* ── BOOT ─────────────────────────────────────────────── */
