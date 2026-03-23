@@ -1938,7 +1938,7 @@ function showSplash() {
   var upcomingS16Html = '';
   if(!isLive && hasUpcomingS16) {
     var s16Games = upcomingGames.filter(function(g){ return g.round==='S16'; });
-    upcomingS16Html = '<div class="splash-section"><div class="splash-sec-lbl">Sweet 16 · Up Next</div><div class="splash-games">'
+    upcomingS16Html = '<div class="splash-section"><div class="splash-sec-lbl">Sweet 16 · Up Next</div><div class="splash-games" style="display:grid;grid-template-columns:1fr 1fr;gap:6px">'
       + s16Games.slice(0,4).map(function(g){
           function logoEl(t) {
             var src = (t.matched&&(t.matched.logo||LOGOS[t.matched.name]))||'';
