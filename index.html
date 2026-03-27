@@ -1183,7 +1183,7 @@ function startPolling() {
       if(d&&dates.indexOf(d)===-1) dates.push(d);
     }
     Promise.all(dates.map(function(d){
-      return fetch('https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?dates='+d.replace(/-/g,''))
+      return fetch('https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?dates='+d.replace(/-/g,'')+'&_t='+Date.now(), {cache:'no-store'})
         .then(function(r){return r.json();}).catch(function(){return null;});
     })).then(function(results){
       var merged={events:[]};
@@ -1195,7 +1195,8 @@ function startPolling() {
     });
   }
   fetchAll();
-  setInterval(fetchAll, 30000);
+  /* Poll every 20s — cache-busting param ensures fresh ESPN data each hit */
+  setInterval(fetchAll, 20000);
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -1739,7 +1740,6 @@ function renderPayouts() {
     + (e8w.length
         ? '<div class="pcard-note">$'+c(e8pp)+'/team · '+e8w.length+' qualifiers</div>'
         : '<div class="pcard-note">'+e8Alive.length+' seeds 1–3 still alive</div>')
-    + '<div class="pcard-note" style="font-style:italic;opacity:0.85;">Payout subject to change based on eligible seeds</div>'
     + roundWinnersList(e8w, e8pp, 'Winners determined after Sweet 16')
     + '</div>'
 
