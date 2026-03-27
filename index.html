@@ -312,6 +312,11 @@ html,body{
 }
 .games-sec-hdr .live-dot{width:6px;height:6px;background:#ef4444}
 .game-list{display:flex;flex-direction:column;gap:8px}
+.e8-live-banner{
+  display:flex;align-items:center;gap:7px;
+  font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;
+  color:#f59e0b;margin-bottom:8px;
+}
 
 
 /* ── MATCHUP CARD ────────────────────────────────────── */
@@ -1556,8 +1561,12 @@ function renderGames() {
   /* LIVE */
   if(liveGames.length) {
     var liveHasR32 = liveGames.some(function(g){return g.round==='R32';});
+    var liveHasE8  = liveGames.some(function(g){return g.round==='E8';});
     var liveNote = (liveHasR32 && !s16NoteShown) ? (s16NoteShown=true, s16NoteHtml) : '';
-    html += '<div class="games-section"><div class="game-list">';
+    var e8LiveBanner = liveHasE8
+      ? '<div class="e8-live-banner"><span class="live-dot"></span>E8 Games Live &nbsp;·&nbsp; Payouts Subject to Change</div>'
+      : '';
+    html += '<div class="games-section">'+e8LiveBanner+'<div class="game-list">';
     liveGames.forEach(function(g){
       var t1=g.t1, t2=g.t2;
       html += '<div class="mcard live">'
