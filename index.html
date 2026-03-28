@@ -597,9 +597,9 @@ var TOTAL_POT = 27160;
 /* ── CHANGELOG — update manually, newest first, max 3 shown ──
    These appear in the splash modal under "Recent Updates".      */
 var CHANGELOG = [
-  'Round of 32 complete — 16 teams advance to Sweet 16 (starts Mar 26)',
-  'R32 payouts locked — S16 per-team rate now confirmed',
-  'Side pot results confirmed: Biggest Loss, Biggest Upset, Best 15/16',
+  'Sweet 16 complete — Elite 8 matchups set (Mar 28-29)',
+  'S16 payouts locked — E8 per-team rate now confirmed',
+  'Big Ten dominates E8: Michigan, Purdue, Illinois, Iowa all advance',
 ];
 
 var POTS = {
@@ -744,6 +744,9 @@ var CONFIRMED_LOST = [
   'Florida','Gonzaga','Virginia',
   'Vanderbilt','Kansas','Louisville','UCLA','Texas Tech','Kentucky','Miami',
   'VCU','Texas A&M','TCU','Utah State','High Point','Saint Louis',
+  /* S16 losers */
+  'Houston','Nebraska','Arkansas','Texas',
+  "St. John's",'Michigan St.','Alabama','Iowa State',
 ];
 
 /* Seeds 4-16 that WON Round of 32 → earn the S16 payout.
@@ -762,7 +765,10 @@ var CONFIRMED_R32 = [
    accurate even if ESPN data hasn't loaded.
 ─────────────────────────────────────────────────────────── */
 var CONFIRMED_S16 = [
-  /* e.g. 'Duke',"St. John's",'Michigan St.' — add as games complete */
+  'Illinois','Iowa',         /* South */
+  'Arizona','Purdue',        /* West */
+  'Duke','UConn',            /* East */
+  'Michigan','Tennessee'     /* Midwest */
 ];
 
 /* ── CONFIRMED SIDE POT RESULTS ────────────────────────────
@@ -801,6 +807,11 @@ var CONFIRMED_R32_UPSETS = [
   {winner:'Texas',        wSeed:11, loser:'Gonzaga',      lSeed:3, diff:8, round:'R32'},
   {winner:'Tennessee',    wSeed:6,  loser:'Virginia',     lSeed:3, diff:3, round:'R32'},
   {winner:"St. John's",  wSeed:5,  loser:'Kansas',       lSeed:4, diff:1, round:'R32'},
+];
+
+var CONFIRMED_S16_UPSETS = [
+  {winner:'Iowa',         wSeed:9,  loser:'Nebraska',     lSeed:4, diff:5, round:'S16'},
+  {winner:'Tennessee',    wSeed:6,  loser:'Iowa State',   lSeed:2, diff:4, round:'S16'},
 ];
 
 TEAMS.forEach(function(t) {
@@ -921,7 +932,7 @@ function computeSidePots() {
   var bupsetDiff=-1, bupsetTopSeed=-1, bupsetEntries=[];
 
   /* Step 1: seed allUpsets from confirmed hardcoded data (R64 + R32) */
-  var allUpsets = CONFIRMED_R64_UPSETS.concat(CONFIRMED_R32_UPSETS).map(function(u){
+  var allUpsets = CONFIRMED_R64_UPSETS.concat(CONFIRMED_R32_UPSETS,CONFIRMED_S16_UPSETS).map(function(u){
     var wt=TEAMS.find(function(t){return t.name===u.winner;})||{};
     var lt=TEAMS.find(function(t){return t.name===u.loser;})||{};
     return {
@@ -931,9 +942,9 @@ function computeSidePots() {
     };
   });
 
-  /* Step 2: add ESPN-detected upsets from S16+ (R64+R32 already covered above) */
+  /* Step 2: add ESPN-detected upsets from E8+ (R64+R32+S16 already covered above) */
   completedGames.forEach(function(g){
-    if(g.round==='R64'||g.round==='R32') return;
+    if(g.round==='R64'||g.round==='R32'||g.round==='S16') return;
     var w=g.t1.winner?g.t1:g.t2, l=g.t1.winner?g.t2:g.t1;
     if(!w||!l||!w.matched||!l.matched) return;
     var diff=w.matched.seed-l.matched.seed;
@@ -2084,8 +2095,8 @@ function renderBracket() {
   var el=document.getElementById('bracket-content'); if(!el) return;
   var html='<div style="padding-top:4px">';
 
-  /* ══ SWEET 16 — 4 regions, 2 games each ══════════════ */
-  html+='<div style="font-size:10px;font-weight:600;letter-spacing:2px;color:#3a3a55;text-transform:uppercase;margin-bottom:10px;padding-left:2px">Sweet 16</div>';
+  /* ══ SWEET 16 → ELITE 8 — 4 regions ══════════════ */
+  html+='<div style="font-size:10px;font-weight:600;letter-spacing:2px;color:#3a3a55;text-transform:uppercase;margin-bottom:10px;padding-left:2px">Sweet 16 → Elite 8</div>';
 
   BRACKET_REGIONS.forEach(function(reg){
     /* S16 winners (→ made E8) */
@@ -2095,10 +2106,27 @@ function renderBracket() {
       if(tb&&tb.wonS16) return p.bot;
       return null;
     }
+    var w1=s16W(reg.s16[0]), w2=s16W(reg.s16[1]);
+    var bothS16Done=!!(w1&&w2);
+
     /* E8 winner (→ made F4) for whole region */
     var f4Adv=bktRegAdv(reg.name,'wonE8');
-    /* Advancement slot: if E8 is done show F4 qualifier, else show E8 label */
-    var advSlotHtml=f4Adv?bktAdvSlot(f4Adv.name,'→ F4'):bktAdvSlot(null,'E8');
+
+    /* Right-side content: E8 game card (if both S16 done) → F4 slot */
+    var rightHtml='';
+    if(bothS16Done){
+      rightHtml='<div style="flex:1;display:flex;align-items:stretch;gap:0">'
+        +'<div style="flex:1;display:flex;align-items:center">'+bktCard(w1,w2,'E8')+'</div>'
+        +BKT_LINE
+        +'<div style="width:68px;flex-shrink:0;display:flex;align-items:center">'
+          +(f4Adv?bktAdvSlot(f4Adv.name,'→ F4'):bktAdvSlot(null,'F4'))
+        +'</div>'
+      +'</div>';
+    } else {
+      rightHtml='<div style="width:68px;flex-shrink:0;display:flex;align-items:center">'
+        +(f4Adv?bktAdvSlot(f4Adv.name,'→ F4'):bktAdvSlot(null,'E8'))
+      +'</div>';
+    }
 
     html+='<div style="margin-bottom:18px">'
       +'<div style="font-size:10px;font-weight:700;color:'+reg.color+';letter-spacing:3px;text-transform:uppercase;margin-bottom:8px;padding-left:2px">'+reg.name+'</div>'
@@ -2108,7 +2136,7 @@ function renderBracket() {
           +bktCard(reg.s16[1].top, reg.s16[1].bot, 'S16')
         +'</div>'
         +BKT_CONNECTOR
-        +'<div style="width:68px;flex-shrink:0;display:flex;align-items:center">'+advSlotHtml+'</div>'
+        +rightHtml
       +'</div>'
     +'</div>';
   });
