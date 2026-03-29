@@ -1571,7 +1571,10 @@ function renderGames() {
 
   /* E8 banner — show at top of games page whenever E8 is the active round */
   if(_gcr==='E8') {
-    html += '<div class="e8-live-banner" style="margin-bottom:12px"><span class="live-dot"></span>E8 Games Live. Final 4 Payouts Are Fixed</div>';
+    var _e8Live = liveGames.some(function(g){return g.round==='E8';});
+    var _e8BannerTxt = _e8Live ? 'E8 Games Live. Final 4 Payouts Are Fixed' : 'E8 Games Today. Final 4 Payouts Are Fixed';
+    var _e8DotHtml = _e8Live ? '<span class="live-dot"></span>' : '';
+    html += '<div class="e8-live-banner" style="margin-bottom:12px">'+_e8DotHtml+_e8BannerTxt+'</div>';
   }
 
   /* LIVE */
