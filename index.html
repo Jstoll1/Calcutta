@@ -2095,38 +2095,21 @@ function renderBracket() {
   var el=document.getElementById('bracket-content'); if(!el) return;
   var html='<div style="padding-top:4px">';
 
-  /* ══ SWEET 16 → ELITE 8 — 4 regions ══════════════ */
-  html+='<div style="font-size:10px;font-weight:600;letter-spacing:2px;color:#3a3a55;text-transform:uppercase;margin-bottom:10px;padding-left:2px">Sweet 16 → Elite 8</div>';
+  /* helper: S16 winner from a pairing */
+  function s16W(p){
+    var ta=bktTeam(p.top), tb=bktTeam(p.bot);
+    if(ta&&ta.wonS16) return p.top;
+    if(tb&&tb.wonS16) return p.bot;
+    return null;
+  }
+
+  /* ══ SWEET 16 — 4 regions, 2 games each ══════════════ */
+  html+='<div style="font-size:10px;font-weight:600;letter-spacing:2px;color:#3a3a55;text-transform:uppercase;margin-bottom:10px;padding-left:2px">Sweet 16</div>';
 
   BRACKET_REGIONS.forEach(function(reg){
-    /* S16 winners (→ made E8) */
-    function s16W(p){
-      var ta=bktTeam(p.top), tb=bktTeam(p.bot);
-      if(ta&&ta.wonS16) return p.top;
-      if(tb&&tb.wonS16) return p.bot;
-      return null;
-    }
     var w1=s16W(reg.s16[0]), w2=s16W(reg.s16[1]);
-    var bothS16Done=!!(w1&&w2);
-
-    /* E8 winner (→ made F4) for whole region */
-    var f4Adv=bktRegAdv(reg.name,'wonE8');
-
-    /* Right-side content: E8 game card (if both S16 done) → F4 slot */
-    var rightHtml='';
-    if(bothS16Done){
-      rightHtml='<div style="flex:1;display:flex;align-items:stretch;gap:0">'
-        +'<div style="flex:1;display:flex;align-items:center">'+bktCard(w1,w2,'E8')+'</div>'
-        +BKT_LINE
-        +'<div style="width:68px;flex-shrink:0;display:flex;align-items:center">'
-          +(f4Adv?bktAdvSlot(f4Adv.name,'→ F4'):bktAdvSlot(null,'F4'))
-        +'</div>'
-      +'</div>';
-    } else {
-      rightHtml='<div style="width:68px;flex-shrink:0;display:flex;align-items:center">'
-        +(f4Adv?bktAdvSlot(f4Adv.name,'→ F4'):bktAdvSlot(null,'E8'))
-      +'</div>';
-    }
+    var advLabel=w1&&w2?'E8':'E8';
+    var advTeam=w1&&w2?null:null; /* just show E8 label in S16 section */
 
     html+='<div style="margin-bottom:18px">'
       +'<div style="font-size:10px;font-weight:700;color:'+reg.color+';letter-spacing:3px;text-transform:uppercase;margin-bottom:8px;padding-left:2px">'+reg.name+'</div>'
@@ -2136,10 +2119,38 @@ function renderBracket() {
           +bktCard(reg.s16[1].top, reg.s16[1].bot, 'S16')
         +'</div>'
         +BKT_CONNECTOR
-        +rightHtml
+        +'<div style="width:68px;flex-shrink:0;display:flex;align-items:center">'
+          +(w1&&w2?bktAdvSlot(null,'E8 →'):bktAdvSlot(null,'E8'))
+        +'</div>'
       +'</div>'
     +'</div>';
   });
+
+  /* ══ ELITE 8 — 4 regions, 1 game each ══════════════ */
+  var anyE8=BRACKET_REGIONS.some(function(reg){
+    return !!(s16W(reg.s16[0])&&s16W(reg.s16[1]));
+  });
+
+  if(anyE8){
+    html+='<div style="font-size:10px;font-weight:600;letter-spacing:2px;color:#3a3a55;text-transform:uppercase;margin:8px 0 10px;padding-left:2px">Elite 8</div>';
+
+    BRACKET_REGIONS.forEach(function(reg){
+      var w1=s16W(reg.s16[0]), w2=s16W(reg.s16[1]);
+      if(!w1||!w2) return;
+      var f4Adv=bktRegAdv(reg.name,'wonE8');
+
+      html+='<div style="margin-bottom:14px">'
+        +'<div style="font-size:10px;font-weight:700;color:'+reg.color+';letter-spacing:3px;text-transform:uppercase;margin-bottom:8px;padding-left:2px">'+reg.name+'</div>'
+        +'<div style="display:flex;align-items:stretch;gap:0">'
+          +'<div style="flex:1">'+bktCard(w1,w2,'E8')+'</div>'
+          +BKT_LINE
+          +'<div style="width:68px;flex-shrink:0;display:flex;align-items:center">'
+            +(f4Adv?bktAdvSlot(f4Adv.name,'→ F4'):bktAdvSlot(null,'F4'))
+          +'</div>'
+        +'</div>'
+      +'</div>';
+    });
+  }
 
   html+='</div>'; /* close outer wrapper */
   el.innerHTML=html;
