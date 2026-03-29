@@ -1500,6 +1500,10 @@ function renderGames() {
         var e8pp=computeE8PerTeam();
         if(e8pp>0) earn = '<div class="mcard-earn s16">+$'+c(e8pp)+' E8</div>';
       }
+      if(round==='E8' && tm.top3) {
+        var _e8pp=computeE8PerTeam();
+        if(_e8pp>0) earn = '<div class="mcard-earn s16">+$'+c(_e8pp)+' E8</div>';
+      }
     }
 
     return '<div class="mcard-side'+(side==='right'?' right':'')+'">'
