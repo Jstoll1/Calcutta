@@ -1096,12 +1096,16 @@ function getGameRound(ev, teams) {
       if(d) knownRoundDates[d]='R32'; return 'R32';
     }
     if(hl.indexOf('sweet')>-1)  { if(d) knownRoundDates[d]='S16'; return 'S16'; }
-    if(hl.indexOf('elite')>-1)  { if(d) knownRoundDates[d]='E8';  return 'E8';  }
+    if(hl.indexOf('elite')>-1||hl.indexOf('regional')>-1)  { if(d) knownRoundDates[d]='E8';  return 'E8';  }
     if(hl.indexOf('final four')>-1||hl.indexOf('semifinal')>-1){ if(d) knownRoundDates[d]='F4'; return 'F4'; }
     if(hl.indexOf('national championship')>-1||hl.indexOf('championship game')>-1){ if(d) knownRoundDates[d]='NCG'; return 'NCG'; }
   }
   if(teams){
     var matched=teams.filter(function(t){return t.matched;});
+    /* Both teams won S16 → must be E8 */
+    if(matched.length>=2&&matched.every(function(t){return t.matched.wonS16;})){
+      var d3=toETDate(ev.date||''); if(d3) knownRoundDates[d3]='E8'; return 'E8';
+    }
     if(matched.length>=2&&matched.every(function(t){return t.matched.status==='won';})){
       var d2=toETDate(ev.date||''); if(d2) knownRoundDates[d2]='R32'; return 'R32';
     }
